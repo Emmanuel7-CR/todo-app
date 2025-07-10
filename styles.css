@@ -1,0 +1,403 @@
+:root {
+  --background: #101114;
+  --primary-color: #1C1D20;
+  --secondary-color: #4A4D57;
+  --accent-color: #00FFCA;
+  --text-color: #fff;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16pt;
+  color: var(--text-color);
+}
+
+body {
+  min-height: 100vh;
+  padding: 10px;
+  background-color: var(--background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+header {
+  position: fixed;
+  margin: -10px;
+  padding: 0;
+  background-color: var(--primary-color);
+  width: 100%;
+  z-index: 9999;
+}
+
+header ul {
+  width: 95%;
+  list-style: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+ul li {
+  height: 100%;
+  list-style: none;
+}
+
+ul li:first-child {
+  margin-right: auto;
+  margin-left: 20px;
+}
+
+li.nav {
+  margin: 20px 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+li.search {
+  cursor: pointer;
+}
+.wrapper {
+  margin-top: 100px;
+  width: 700px;
+  max-width: 100%;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#search-input,
+#task-title,
+#task-description,
+input[type="date"],
+input[type="time"]
+{
+  box-sizing: border-box;
+  padding: 12px 20px;
+  width: 100%;
+  background: none;
+  border: 2px solid var(--secondary-color);
+  border-radius: 1000px;
+  font: inherit;
+  color: var(--text-color);
+  caret-color: var(--accent-color);
+}
+
+#search-input:focus,
+#task-title:focus,
+#task-description:focus,
+#due-date:focus {
+  outline: none;
+}
+form {
+  position: relative;
+  margin-top: 100px;
+}
+
+label {
+  font-size: 30px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  cursor: pointer;
+}
+
+.error-message,
+.date-error-message {
+  color: red;
+  display: none;
+}
+#save-button,
+#update-button {
+  position: unset;
+  width: 100%;
+  margin-top: 10px;
+  padding: 15px;
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 1000px;
+  transition: all 0.3s ease;
+}
+
+#save-button {
+  background-color: var(--accent-color);
+  color: var(--background);
+}
+
+#update-button {
+  background-color: var(--secondary-color);
+  color: var(--accent-color);
+}
+
+#update-button:hover,
+#save-button:hover {
+  background-color: var(--accent-color);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+#todo-list {
+  counter-reset: todo-item;
+}
+
+#todo-list div {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  counter-increment: todo-item;
+  background-color: var(--primary-color);
+  padding: 10px;
+  border-bottom: 1px solid var(--secondary-color);
+  border-radius: 10px;
+  margin: 20px auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 800px;
+}
+
+#todo-list div:first-child {
+  margin-top: 100px;
+}
+
+#todo-list div::before {
+  content: counter(todo-item) ".";
+  font-size: 20px;
+  margin-right: 15px;
+  color: var(--accent-color);
+}
+
+#todo-list div:last-child {
+  border-bottom: none;
+}
+
+
+#todo-list h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: var(--accent-color);
+}
+
+#todo-list p {
+  font-size: 14px;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+#todo-list p:last-child {
+  color: var(--accent-color);
+  opacity: 1;
+}
+.complete-btn,
+.complete-btn.completed {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: unset;
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 10px;
+  outline: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.complete-btn {
+  background-color: var(--accent-color);
+  color: var(--background);
+}
+
+.complete-btn.completed {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+.complete-btn:not(.complete-btn.completed):hover {
+  background-color: var(--accent-color);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+
+.new-todo-btn{
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+}
+
+#add-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--accent-color);
+  height: 50px;
+  width: 50px;
+  padding: 15px;
+  border: none;
+  border-radius: 50%;
+  font: inherit;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+#add-btn:hover {
+  background-color: var(--accent-color);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+ 
+h2.edit-option,
+h2.delete-option {
+  justify-self: right;
+  align-self: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  height: 20px;
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: large;
+  cursor: pointer;
+  color: var(--background) !important;
+  background-color: var(--accent-color);
+}
+
+.edit-option,
+  .delete-option,
+  .complete-btn,
+  h2.edit-option,
+  h2.delete-option {
+    width: 100%;
+    margin: 8px 0;
+    font-size: 14px;
+  }
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--accent-color);
+  color: var(--background);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.modal-buttons button:hover {
+  background-color: var(--accent-color);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+
+.progress-summary {
+  margin-top: 20px;
+  font-size: 18px;
+  color: var(--accent-color);
+  font-weight: bold;
+  text-align: center;
+}
+
+
+
+
+@media (max-width: 480px) {
+  .progress-summary {
+    font-size: 14px;
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 11pt;
+  }
+
+  #todo-list div {
+    padding: 15px;
+    margin: 15px auto;
+    width: 95%;
+  }
+
+  #todo-list h2,
+  #todo-list p {
+    font-size: 14px;
+  }
+
+  
+  .modal-content {
+    width: 90%;
+    font-size: 14px;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #save-button,
+  #add-btn {
+    width: 100%;
+    border-radius: 50px;
+    font-size: 14px;
+  }
+
+  form label {
+    font-size: 18px;
+  }
+
+  #task-title,
+  #task-description,
+  #due-date {
+    font-size: 14px;
+    padding: 10px 15px;
+  }
+}
