@@ -4,6 +4,7 @@
   --secondary-color: #4A4D57;
   --accent-color: #00FFCA;
   --text-color: #fff;
+  --error-color: #FF4C4C;
 }
 
 ::-webkit-scrollbar {
@@ -104,14 +105,7 @@ form {
   margin-top: 100px;
 }
 
-label {
-  font-size: 30px;
-  text-transform: uppercase;
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  cursor: pointer;
-}
+
 
 .error-message,
 .date-error-message {
@@ -119,7 +113,8 @@ label {
   display: none;
 }
 #save-button,
-#update-button {
+#update-button,
+#cancel-button {
   position: unset;
   width: 100%;
   margin-top: 10px;
@@ -140,12 +135,21 @@ label {
   background-color: var(--secondary-color);
   color: var(--accent-color);
 }
+#cancel-button {
+  background-color: var(--error-color);
+  color: var(--text-color);
+}
 
 #update-button:hover,
 #save-button:hover {
   background-color: var(--accent-color);
   color: var(--background);
   box-shadow: 0 0 10px var(--accent-color);
+}
+#cancel-button:hover {
+  background-color: var(--error-color);
+  color: var(--text-color);
+  box-shadow: 0 0 10px var(--error-color);
 }
 #todo-list {
   counter-reset: todo-item;
@@ -344,6 +348,70 @@ h2.delete-option {
   color: var(--accent-color);
   font-weight: bold;
   text-align: center;
+}
+
+.floating-input {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.floating-input input {
+  width: 100%;
+  padding: 12px 10px;
+  background-color: transparent;
+  border: 1px solid white;
+  border-radius: 4px;
+  color: white;
+  font-size: 1rem;
+}
+
+.floating-input label {
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  color: white;
+  background: transparent;
+  transition: 0.2s ease all;
+  pointer-events: none;
+}
+
+.floating-input input:focus + label,
+.floating-input input.not-empty + label {
+  top: -10px;
+  font-size: 0.75rem;
+  color: white;
+  background-color: var(--background); /* Optional: create contrast */
+  padding: 0 4px;
+}
+
+.non-floating-input {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.non-floating-input input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 20px;
+  background-color: none;
+  border: 2px solid var(--secondary-color);
+  border-radius: 1000px;
+  color: white;
+  font-size: 1rem;
+  color: var(--text-color);
+  caret-color: var(--accent-color);
+}
+
+
+.non-floating-input label {
+  position: absolute;
+  left: 12px;
+  top: -12px; /* Position it on the top border */
+  color: white;
+  font-size: 0.75rem;
+  padding: 0 4px;
+  background-color: #111; /* Match the background */
+  font-weight: normal;
 }
 
 
