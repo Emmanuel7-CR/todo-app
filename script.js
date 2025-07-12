@@ -1,26 +1,59 @@
 'use strict';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
+import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-messaging.js';
 
-// DOM Elements
+const firebaseConfig = {
+  apiKey: "AIzaSyDfT-dd5B30EcCeHHbZ-iIzRwVg1sLP0ek",
+  authDomain: "todo-reminder-app-6cab6.firebaseapp.com",
+  projectId: "todo-reminder-app-6cab6",
+  messagingSenderId: "361450721360",
+  appId: "1:361450721360:web:acaff1832005963e9c0155"
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+
+async function getPushToken() {
+  try {
+    const token = await getToken(messaging, {
+      vapidKey: "BPY2MxTs0UUWymlN9eHvZSzERaipZ8Gh7l55DXnXSOsKy5enxQmg0VvuVN5PpKxlMi_vs0jpMsbOj5mrY2YsuA4"
+    });
+
+    if (token) {
+      console.log("🔐 Push token:", token);
+    } else {
+      console.warn("⚠️ No registration token available.");
+    }
+  } catch (err) {
+    console.error("❌ Error retrieving token:", err);
+  }
+}
+getPushToken();
+
+if ('Notification' in window && Notification.permission !== 'granted') {
+  Notification.requestPermission().then(permission => {
+    if (permission === 'granted') {
+      console.log('✅ Notification permission granted.');
+    } else {
+      console.log('❌ Notification permission denied.');
+    }
+  });
+}
+
 const search = document.querySelector('.wrapper');
 const addButton = document.getElementById('add-btn');
 const searchInput = document.getElementById('search-input');
 
-// State
 let allTodos = getTodos();
-
-// Initial Render
 renderTodoFiltered(allTodos);
 updateProgressSummary();
 
-// Search Bar Toggle
 function searchBar() {
   search.style.display = 'flex';
 }
-
-// Search Functionality
 searchInput.addEventListener('input', (e) => {
   const query = e.target.value.toLowerCase();
-  const filteredTodos = allTodos.filter((todo) =>
+  const filteredTodos = allTodos.filter(todo =>
     todo.title.toLowerCase().includes(query) ||
     todo.description.toLowerCase().includes(query) ||
     todo.dueDate.toLowerCase().includes(query)
@@ -28,12 +61,10 @@ searchInput.addEventListener('input', (e) => {
   renderTodoFiltered(filteredTodos);
 });
 
-// Save Todos to Local Storage
 function saveTodos() {
   localStorage.setItem('todos', JSON.stringify(allTodos));
 }
 
-// Get Todos from Local Storage
 function getTodos() {
   const json = localStorage.getItem('todos');
   if (!json) return [];
@@ -43,13 +74,17 @@ function getTodos() {
   }));
 }
 
-// Add New Todo
-function addTodo(title, description, dueDate) {
-  allTodos.push({ title, description, dueDate, completed: false });
+function addTodo(title, description, dueDateISO) {
+  allTodos.push({
+    title,
+    description,
+    dueDate: dueDateISO,
+    completed: false,
+    reminderCount: 0
+  });
   saveTodos();
 }
 
-// Render Todos to DOM
 function renderTodoFiltered(todos) {
   const todoList = document.getElementById('todo-list');
   todoList.innerHTML = "";
@@ -57,13 +92,21 @@ function renderTodoFiltered(todos) {
   todos.forEach((task, index) => {
     todoList.innerHTML += `
       <div>
-        <h2 style="${task.completed ? 'text-decoration: line-through;' : ''}">${task.title}</h2>
-        <p style="${task.completed ? 'text-decoration: line-through;' : ''}">${task.description}</p>
-        <p style="${task.completed ? 'text-decoration: line-through;' : ''}">Due Date: ${task.dueDate}</p>
-
+        <h2 style="${task.completed ? 'text-decoration: line-through;' : ''}">
+         ${task.title} ${!task.completed && new Date(task.dueDate) < new Date() ? '⚠️' : ''}
+        </h2>
+        <p style="${task.completed ? 'text-decoration: line-through;' : ''}">
+          Due Date: ${new Date(task.dueDate).toLocaleString('en-NG', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          })}
+        </p>
+        ${!task.completed && new Date(task.dueDate) < new Date() ? `
+          <span style="background: red; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
+            OVERDUE
+          </span>` : ''}
         <h2 class="edit-option" data-index="${index}">Edit</h2>
         <h2 class="delete-option" data-index="${index}">Delete</h2>
-
         <button class="complete-btn ${task.completed ? 'completed' : ''}" data-index="${index}">
           ${task.completed ? 'Completed' : 'Complete'}
         </button>
@@ -132,37 +175,57 @@ function editTask(index) {
   todoList.style.display = 'none';
 
   const form = document.createElement('form');
-  const [datePart, timePart] = todo.dueDate.split(",");
-
   form.innerHTML = `
-    <label for="task-title">Task Title</label>
-    <input type="text" id="task-title" value="${todo.title}" autocomplete="off" />
+    <div class="floating-input">
+      <input type="text" id="task-title" value="${todo.title}" autocomplete="off" />
+      <label for="task-title">Task Title</label>
+    </div>
     <p class="error-message">Please input the task title</p>
-
-    <label for="task-description">Task Description</label><span>(optional)</span>
-    <input type="text" id="task-description" value="${todo.description}" autocomplete="off" />
-
-    <label for="custom-date">Due Date</label>
-    <input type="date" id="custom-date" />
-
-    <label for="custom-time">Due Time</label>
-    <input type="time" id="custom-time" />
+    <div class="floating-input">
+      <input type="text" id="task-description" value="${todo.description}" autocomplete="off" />
+      <label for="task-description">Task Description</label>
+    </div>
+    <div class="non-floating-input">
+      <label for="custom-date">Due Date</label>
+      <input type="date" id="custom-date" />
+    </div>
+    <div class="non-floating-input">
+      <label for="custom-time">Due Time</label>
+      <input type="time" id="custom-time" />
+    </div>
     <p class="date-error-message">Please select both date and time</p>
-
     <button id="update-button">Update Task</button>
+    <button type="button" id="cancel-button" style="margin-top: 8px;">Cancel</button>
   `;
-
   formContainer.appendChild(form);
+
+  document.querySelectorAll('.floating-input input').forEach(input => {
+    const checkInput = () => {
+      input.classList.toggle('not-empty', input.value.trim() !== '');
+    };
+    input.addEventListener('input', checkInput);
+    input.addEventListener('blur', checkInput);
+    checkInput();
+  });
+
+  document.getElementById('cancel-button').addEventListener('click', () => {
+    history.back();
+    formContainer.innerHTML = "";
+    todoList.style.display = 'block';
+  });
+
+  const titleInput = document.getElementById('task-title');
+  const error = document.querySelector('.error-message');
+  titleInput.addEventListener('input', () => {
+    if (titleInput.value.trim() !== '') error.style.display = 'none';
+  });
 
   document.getElementById('update-button').addEventListener('click', function (event) {
     event.preventDefault();
-
-    const title = document.getElementById('task-title').value;
+    const title = titleInput.value;
     const desc = document.getElementById('task-description').value;
     const date = document.getElementById('custom-date').value;
     const time = document.getElementById('custom-time').value;
-
-    const error = document.querySelector('.error-message');
     const dateError = document.querySelector('.date-error-message');
 
     if (!title) {
@@ -170,15 +233,13 @@ function editTask(index) {
     } else if (!date || !time) {
       dateError.style.display = 'block';
     } else {
-      const dueDate = new Date(`${date}T${time}`).toLocaleString('en-NG', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      });
-      allTodos[index] = { ...allTodos[index], title, description: desc, dueDate };
+      const isoDate = new Date(`${date}T${time}`).toISOString();
+      allTodos[index] = { ...allTodos[index], title, description: desc, dueDate: isoDate, reminderCount: 0 };
       saveTodos();
       renderTodoFiltered(allTodos);
       formContainer.innerHTML = "";
       todoList.style.display = 'block';
+      history.pushState({ page: 'form' }, '', '#form');
     }
   });
 }
@@ -191,33 +252,56 @@ function taskForm() {
 
   const form = document.createElement('form');
   form.innerHTML = `
-    <label for="task-title">Task Title</label>
-    <input type="text" id="task-title" placeholder="enter task title" autocomplete="off" />
+    <div class="floating-input">
+      <input type="text" id="task-title" autocomplete="off" />
+      <label for="task-title">Task Title</label>
+    </div>
     <p class="error-message">Please input the task title</p>
-
-    <label for="task-description">Task Description</label><span>(optional)</span>
-    <input type="text" id="task-description" placeholder="enter task description" autocomplete="off" />
-
-    <label for="custom-date">Due Date</label>
-    <input type="date" id="custom-date" />
-
-    <label for="custom-time">Due Time</label>
-    <input type="time" id="custom-time" />
+    <div class="floating-input">
+      <input type="text" id="task-description" autocomplete="off" />
+      <label for="task-description">Task Description</label>
+    </div>
+    <div class="non-floating-input">
+      <label for="custom-date">Due Date</label>
+      <input type="date" id="custom-date" />
+    </div>
+    <div class="non-floating-input">
+      <label for="custom-time">Due Time</label>
+      <input type="time" id="custom-time" />
+    </div>
     <p class="date-error-message">Please select both date and time</p>
-
     <button id="save-button">Save Task</button>
+    <button type="button" id="cancel-button" style="margin-top: 8px;">Cancel</button>
   `;
   formContainer.appendChild(form);
 
+  document.querySelectorAll('.floating-input input').forEach(input => {
+    const checkInput = () => {
+      input.classList.toggle('not-empty', input.value.trim() !== '');
+    };
+    input.addEventListener('input', checkInput);
+    input.addEventListener('blur', checkInput);
+    checkInput();
+  });
+
+  document.getElementById('cancel-button').addEventListener('click', () => {
+    history.back();
+    formContainer.innerHTML = "";
+    todoList.style.display = 'block';
+  });
+
+  const titleInput = document.getElementById('task-title');
+  const error = document.querySelector('.error-message');
+  titleInput.addEventListener('input', () => {
+    if (titleInput.value.trim() !== '') error.style.display = 'none';
+  });
+
   document.getElementById('save-button').addEventListener('click', function (event) {
     event.preventDefault();
-
-    const title = document.getElementById('task-title').value;
+    const title = titleInput.value;
     const desc = document.getElementById('task-description').value;
     const date = document.getElementById('custom-date').value;
     const time = document.getElementById('custom-time').value;
-
-    const error = document.querySelector('.error-message');
     const dateError = document.querySelector('.date-error-message');
 
     if (!title) {
@@ -225,18 +309,58 @@ function taskForm() {
     } else if (!date || !time) {
       dateError.style.display = 'block';
     } else {
-      const dueDate = new Date(`${date}T${time}`).toLocaleString('en-NG', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      });
-      error.style.display = 'none';
-      dateError.style.display = 'none';
-      addTodo(title, desc, dueDate);
+      const isoDate = new Date(`${date}T${time}`).toISOString();
+      addTodo(title, desc, isoDate);
+      saveTodos();
       renderTodoFiltered(allTodos);
       formContainer.innerHTML = "";
       todoList.style.display = 'block';
     }
   });
+
+  history.pushState({ page: 'form' }, '', '#form');
 }
 
+function checkAndSendReminders() {
+  const now = new Date();
+  allTodos.forEach((todo, index) => {
+    if (todo.completed) return;
+    const dueTime = new Date(todo.dueDate);
+    if (now >= dueTime && todo.reminderCount < 2) {
+      sendReminderNotification(todo.title, todo.description);
+      allTodos[index].reminderCount += 1;
+      saveTodos();
+    }
+  });
+}
+
+function sendReminderNotification(title, description) {
+  if (Notification.permission === 'granted') {
+    new Notification('🔔 Task Reminder', {
+      body: `${title}\n${description || ''}`,
+      icon: 'icons/icon-192.png'
+    });
+  }
+}
+
+function startReminderLoop() {
+  setInterval(checkAndSendReminders, 180000);
+}
+
+// Final setup
 addButton.addEventListener('click', taskForm);
+startReminderLoop();
+
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.page === 'form') {
+    document.getElementById('form-container').innerHTML = "";
+    document.getElementById('todo-list').style.display = 'block';
+  }
+});
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('firebase-messaging-sw.js')
+    .then(reg => console.log('✅ SW registered:', reg))
+    .catch(err => console.error('❌ SW failed:', err));
+}
