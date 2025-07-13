@@ -48,21 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchBtn = document.getElementById('search-icon');
   const searchWrapper = document.getElementById('search-wrapper');
   const searchInput = document.getElementById('search-input');
+  const installBtn = document.getElementById('install-button'); // ✅ Declare once
 
+  // === Search Box Logic ===
   if (searchBtn && searchWrapper && searchInput) {
-    // Show the search box
     searchBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent it from triggering document click
+      e.stopPropagation();
       searchWrapper.style.display = 'flex';
       searchInput.focus();
     });
 
-    // Prevent hiding if clicked inside wrapper
     searchWrapper.addEventListener('click', (e) => {
       e.stopPropagation();
     });
 
-    // Hide on outside click + check if text matches tasks
     document.addEventListener('click', () => {
       searchWrapper.style.display = 'none';
 
@@ -75,11 +74,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!matchExists && query !== '') {
         searchInput.value = '';
-        renderTodoFiltered(allTodos); // restore full list
+        renderTodoFiltered(allTodos);
+      }
+    });
+  }
+
+  // === Custom Install Button Logic ===
+let deferredPrompt = null;
+
+
+// Function to adjust install button label based on screen size
+function updateInstallButton() {
+  if (!installBtn) return;
+  if (window.innerWidth <= 480) {
+    installBtn.textContent = '📲';
+  } else {
+    installBtn.textContent = '📲 Install App';
+  }
+}
+
+// Run initially
+updateInstallButton();
+
+// Update whenever screen is resized
+window.addEventListener('resize', updateInstallButton);
+
+// Listen for install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  if (installBtn) {
+    installBtn.style.display = 'block';
+    installBtn.classList.add('pulse');
+
+    setTimeout(() => {
+      installBtn.classList.remove('pulse');
+    }, 4500);
+
+    installBtn.addEventListener('click', async () => {
+      installBtn.style.display = 'none';
+
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to install: ${outcome}`);
+        deferredPrompt = null;
       }
     });
   }
 });
+
+});
+
+
 
 
 
@@ -400,18 +448,18 @@ window.addEventListener('popstate', (event) => {
 
 // Register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('firebase-messaging-sw.js', {
-    scope: './', // Ensures SW controls the whole site
-    type: 'classic' // Can also be 'module' if your SW uses ES modules
+  navigator.serviceWorker.register('/service-worker.js', {
+    scope: '/'
   }).then(registration => {
-    console.log('✅ Service Worker registered with scope:', registration.scope);
+    console.log('✅ Offline Service Worker registered with scope:', registration.scope);
 
-    // Wait until the service worker is controlling the page
     navigator.serviceWorker.ready.then(() => {
-      console.log('🎮 Service Worker is active and controlling the page');
+      console.log('🎮 Service Worker is ready and controlling the page');
     });
 
   }).catch(error => {
     console.error('❌ Service Worker registration failed:', error);
   });
 }
+
+
