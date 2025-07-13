@@ -29,6 +29,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
 }
 header {
   position: fixed;
@@ -407,14 +408,93 @@ h2.delete-option {
   position: absolute;
   left: 12px;
   top: -12px; /* Position it on the top border */
-  color: white;
+  color: var(--text-color);
   font-size: 0.75rem;
   padding: 0 4px;
   background-color: #111; /* Match the background */
   font-weight: normal;
 }
 
+#install-button {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  background-color: #0f62fe;
+  color: var(--text-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
 
+#install-button:hover {
+  background: #0050c7;
+  transform: scale(1.05);
+}
+
+#install-button:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip styling */
+#install-button .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background-color: #000;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 4px 8px;
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+/* 🔁 RESPONSIVE for mobile screens */
+@media (max-width: 480px) {
+  #install-button {
+    padding: 10px;
+    font-size: 1.2rem;
+  }
+
+  #install-button::after {
+    content: "";
+  }
+
+  #install-button:hover .tooltip,
+  #install-button:focus .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+#install-button.pulse {
+  animation: pulse 1.5s ease-out;
+  animation-iteration-count: 3; /* Pulses 3 times */
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(15, 98, 254, 0.7);
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(15, 98, 254, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(15, 98, 254, 0);
+  }
+}
 
 
 @media (max-width: 480px) {
