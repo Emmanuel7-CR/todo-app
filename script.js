@@ -400,7 +400,18 @@ window.addEventListener('popstate', (event) => {
 
 // Register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('firebase-messaging-sw.js')
-    .then(reg => console.log('✅ SW registered:', reg))
-    .catch(err => console.error('❌ SW failed:', err));
+  navigator.serviceWorker.register('firebase-messaging-sw.js', {
+    scope: './', // Ensures SW controls the whole site
+    type: 'classic' // Can also be 'module' if your SW uses ES modules
+  }).then(registration => {
+    console.log('✅ Service Worker registered with scope:', registration.scope);
+
+    // Wait until the service worker is controlling the page
+    navigator.serviceWorker.ready.then(() => {
+      console.log('🎮 Service Worker is active and controlling the page');
+    });
+
+  }).catch(error => {
+    console.error('❌ Service Worker registration failed:', error);
+  });
 }
