@@ -40,17 +40,57 @@ if ('Notification' in window && Notification.permission !== 'granted') {
   });
 }
 
-const search = document.querySelector('.wrapper');
 const addButton = document.getElementById('add-btn');
 const searchInput = document.getElementById('search-input');
+
+//Search functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const searchBtn = document.getElementById('search-icon');
+  const searchWrapper = document.getElementById('search-wrapper');
+  const searchInput = document.getElementById('search-input');
+
+  if (searchBtn && searchWrapper && searchInput) {
+    // Show the search box
+    searchBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent it from triggering document click
+      searchWrapper.style.display = 'flex';
+      searchInput.focus();
+    });
+
+    // Prevent hiding if clicked inside wrapper
+    searchWrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // Hide on outside click + check if text matches tasks
+    document.addEventListener('click', () => {
+      searchWrapper.style.display = 'none';
+
+      const query = searchInput.value.trim().toLowerCase();
+      const matchExists = allTodos.some(todo =>
+        todo.title.toLowerCase().includes(query) ||
+        todo.description.toLowerCase().includes(query) ||
+        todo.dueDate.toLowerCase().includes(query)
+      );
+
+      if (!matchExists && query !== '') {
+        searchInput.value = '';
+        renderTodoFiltered(allTodos); // restore full list
+      }
+    });
+  }
+});
+
+
+
+
+
 
 let allTodos = getTodos();
 renderTodoFiltered(allTodos);
 updateProgressSummary();
 
-function searchBar() {
-  search.style.display = 'flex';
-}
+
 searchInput.addEventListener('input', (e) => {
   const query = e.target.value.toLowerCase();
   const filteredTodos = allTodos.filter(todo =>
