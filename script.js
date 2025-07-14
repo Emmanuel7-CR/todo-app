@@ -1,4 +1,5 @@
 'use strict';
+
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-messaging.js';
 
@@ -39,6 +40,28 @@ if ('Notification' in window && Notification.permission !== 'granted') {
     }
   });
 }
+
+// === SOUND SETUP ===
+const alertSound = new Audio('sounds/alert.mp3');
+
+// === REMINDER LOOP ===
+function checkAndSendReminders() {
+  const now = new Date();
+  allTodos.forEach((todo, index) => {
+    const dueTime = new Date(todo.dueDate);
+    if (
+      !todo.completed &&
+      todo.reminderCount === 0 &&
+      Math.abs(now - dueTime) <= 10000
+    ) {
+      sendReminderNotification(todo.title, todo.description);
+      allTodos[index].reminderCount += 1;
+      saveTodos();
+    }
+  });
+}
+
+
 
 const addButton = document.getElementById('add-btn');
 const searchInput = document.getElementById('search-input');
@@ -126,12 +149,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 });
-
-
-
-
-
-
 
 
 let allTodos = getTodos();
@@ -409,30 +426,32 @@ function taskForm() {
   history.pushState({ page: 'form' }, '', '#form');
 }
 
-function checkAndSendReminders() {
-  const now = new Date();
-  allTodos.forEach((todo, index) => {
-    if (todo.completed) return;
-    const dueTime = new Date(todo.dueDate);
-    if (now >= dueTime && todo.reminderCount < 2) {
-      sendReminderNotification(todo.title, todo.description);
-      allTodos[index].reminderCount += 1;
-      saveTodos();
-    }
-  });
-}
+alertSound.load(); // Preload it
+
+
+
 
 function sendReminderNotification(title, description) {
   if (Notification.permission === 'granted') {
-    new Notification('🔔 Task Reminder', {
-      body: `${title}\n${description || ''}`,
-      icon: 'icons/icon-192.png'
+    if (document.visibilityState === 'visible') {
+      new Notification('🔔 Task Reminder', {
+        body: `${title}\n${description || ''}`,
+        icon: 'icons/icon-192.png'
+      });
+    } else {
+      console.log("📵 Tab not active. Notification skipped (no service worker fallback yet).");
+    }
+
+    alertSound.play().catch(() => {
+      console.warn("🔇 Sound playback blocked (user gesture needed).");
     });
   }
 }
 
+
 function startReminderLoop() {
-  setInterval(checkAndSendReminders, 180000);
+  checkAndSendReminders(); // Initial check
+  setInterval(checkAndSendReminders, 5000); // every 3 minutes
 }
 
 // Final setup
@@ -446,20 +465,14 @@ window.addEventListener('popstate', (event) => {
   }
 });
 
+
+
+
 // Register service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js', {
-    scope: '/'
-  }).then(registration => {
-    console.log('✅ Offline Service Worker registered with scope:', registration.scope);
-
-    navigator.serviceWorker.ready.then(() => {
-      console.log('🎮 Service Worker is ready and controlling the page');
-    });
-
-  }).catch(error => {
-    console.error('❌ Service Worker registration failed:', error);
-  });
+  navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+    .catch(err => console.error('❌ Service Worker registration failed:', err));
 }
 
 
