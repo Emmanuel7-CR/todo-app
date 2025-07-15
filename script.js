@@ -43,6 +43,7 @@ if ('Notification' in window && Notification.permission !== 'granted') {
 
 // === SOUND SETUP ===
 const alertSound = new Audio('sounds/alert.mp3');
+alertSound.load();
 
 // === REMINDER LOOP ===
 function checkAndSendReminders() {
@@ -52,8 +53,9 @@ function checkAndSendReminders() {
     if (
       !todo.completed &&
       todo.reminderCount === 0 &&
-      Math.abs(now - dueTime) <= 10000
+      Math.abs(now - dueTime) <= 15000
     ) {
+      console.log(`🕒 Task due: ${todo.title} at ${dueTime.toLocaleString()}`);
       sendReminderNotification(todo.title, todo.description);
       allTodos[index].reminderCount += 1;
       saveTodos();
@@ -426,21 +428,17 @@ function taskForm() {
   history.pushState({ page: 'form' }, '', '#form');
 }
 
-alertSound.load(); // Preload it
+
 
 
 
 
 function sendReminderNotification(title, description) {
   if (Notification.permission === 'granted') {
-    if (document.visibilityState === 'visible') {
-      new Notification('🔔 Task Reminder', {
-        body: `${title}\n${description || ''}`,
-        icon: 'icons/icon-192.png'
-      });
-    } else {
-      console.log("📵 Tab not active. Notification skipped (no service worker fallback yet).");
-    }
+    new Notification('🔔 Task Reminder', {
+      body: `${title}\n${description || ''}`,
+      icon: 'icons/icon-192.png'
+    });
 
     alertSound.play().catch(() => {
       console.warn("🔇 Sound playback blocked (user gesture needed).");
@@ -450,13 +448,14 @@ function sendReminderNotification(title, description) {
 
 
 function startReminderLoop() {
-  checkAndSendReminders(); // Initial check
-  setInterval(checkAndSendReminders, 5000); // every 3 minutes
+  console.log("🔁 Reminder loop started");
+  checkAndSendReminders();
+  setInterval(checkAndSendReminders, 5000); // 5 seconds for testing
 }
+
 
 // Final setup
 addButton.addEventListener('click', taskForm);
-startReminderLoop();
 
 window.addEventListener('popstate', (event) => {
   if (event.state && event.state.page === 'form') {
@@ -476,3 +475,7 @@ if ('serviceWorker' in navigator) {
 }
 
 
+// === Call Reminder Loop after DOM Ready ===
+document.addEventListener('DOMContentLoaded', () => {
+  startReminderLoop();
+});
