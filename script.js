@@ -114,6 +114,8 @@ function checkAndSendReminders() {
       saveTodos();
 
       // You can optionally update UI here if needed
+      displayTodos(); // <-- force UI refresh
+
     }
   });
 }
@@ -541,5 +543,6 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
