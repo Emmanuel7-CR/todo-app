@@ -334,12 +334,7 @@ function deleteTask(index) {
 }
 
 function editTask(index) {
-  const todo = allTodos[index],
-    title,
-  description: desc,
-  dueDate: isoDate,
-  reminderCount: 0,
-  notified: false // 🔁 Reset to allow re-notification;
+  const todo = allTodos[index];
   const formContainer = document.getElementById('form-container');
   const todoList = document.getElementById('todo-list');
   formContainer.innerHTML = "";
@@ -543,6 +538,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
