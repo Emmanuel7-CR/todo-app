@@ -45,6 +45,48 @@ if ('Notification' in window && Notification.permission !== 'granted') {
 const alertSound = new Audio('sounds/alert.mp3');
 alertSound.load();
 
+// === SOUND AUTOPLAY UNLOCK ===
+function enableSoundAutoplay() {
+  alertSound.play().then(() => {
+    console.log("Sound autoplay enabled");
+    localStorage.setItem("soundEnabled", "true");
+
+    // Auto-dismiss banner with fade-out effect
+    const banner = document.getElementById("sound-banner");
+    if (banner) {
+      banner.style.transition = "opacity 0.5s ease";
+      banner.style.opacity = "0";
+      setTimeout(() => banner.remove(), 600); // remove after fade
+    }
+  }).catch((err) => {
+    console.warn("Autoplay blocked:", err);
+  });
+}
+
+// Banner for Sound Permission
+function showSoundBanner() {
+  if (localStorage.getItem("soundEnabled") === "true") return;
+  const banner = document.createElement("div");
+  banner.id = "sound-banner";
+  banner.textContent = "🔊 Tap here to enable sound alerts";
+  banner.style = `
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #007bff;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    cursor: pointer;
+    z-index: 9999;
+  `;
+  banner.onclick = enableSoundAutoplay;
+  document.body.appendChild(banner);
+}
+
+document.addEventListener("DOMContentLoaded", showSoundBanner);
+
 // === REMINDER LOOP ===
 function checkAndSendReminders() {
   const now = new Date();
@@ -499,4 +541,5 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
