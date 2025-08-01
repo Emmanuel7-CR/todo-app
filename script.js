@@ -48,17 +48,30 @@ alertSound.load();
 // === REMINDER LOOP ===
 function checkAndSendReminders() {
   const now = new Date();
+
   allTodos.forEach((todo, index) => {
     const dueTime = new Date(todo.dueDate);
+
     if (
       !todo.completed &&
-      todo.reminderCount === 0 &&
-      Math.abs(now - dueTime) <= 15000
+      dueTime <= now &&
+      !todo.notified // Only notify once
     ) {
-      console.log(`🕒 Task due: ${todo.title} at ${dueTime.toLocaleString()}`);
+      console.log(`🔔 Overdue Task: ${todo.title} at ${dueTime.toLocaleString()}`);
+
+      // Play sound
+      alertSound.play().catch(err => {
+        console.warn("🔇 Sound blocked:", err.message);
+      });
+
+      // Show browser notification
       sendReminderNotification(todo.title, todo.description);
-      allTodos[index].reminderCount += 1;
+
+      // Mark as notified to prevent repeat alerts
+      allTodos[index].notified = true;
       saveTodos();
+
+      // You can optionally update UI here if needed
     }
   });
 }
@@ -187,10 +200,12 @@ function addTodo(title, description, dueDateISO) {
     description,
     dueDate: dueDateISO,
     completed: false,
-    reminderCount: 0
+    reminderCount: 0,
+    notified: false // 🔔 Added this line
   });
   saveTodos();
 }
+
 
 function renderTodoFiltered(todos) {
   const todoList = document.getElementById('todo-list');
@@ -275,7 +290,12 @@ function deleteTask(index) {
 }
 
 function editTask(index) {
-  const todo = allTodos[index];
+  const todo = allTodos[index],
+    title,
+  description: desc,
+  dueDate: isoDate,
+  reminderCount: 0,
+  notified: false // 🔁 Reset to allow re-notification;
   const formContainer = document.getElementById('form-container');
   const todoList = document.getElementById('todo-list');
   formContainer.innerHTML = "";
@@ -479,3 +499,4 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
