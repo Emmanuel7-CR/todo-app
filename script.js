@@ -310,6 +310,8 @@ function openViewModal(task) {
   const existing = document.querySelector('.modal-overlay');
   if (existing) existing.remove();
 
+  const isOverdue = !task.completed && new Date(task.dueDate) < new Date();
+
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.innerHTML = `
@@ -322,6 +324,10 @@ function openViewModal(task) {
         timeStyle: 'short'
       })}</p>
       <p><strong>Status:</strong> ${task.completed ? 'Completed ✅' : 'Incomplete ❌'}</p>
+      ${isOverdue ? `
+        <span style="display:inline-block; margin-top:10px; background:red; color:white; padding:4px 10px; border-radius:6px; font-size:0.8rem;">
+          OVERDUE
+        </span>` : ''}
     </div>
   `;
   document.body.appendChild(modal);
@@ -330,6 +336,8 @@ function openViewModal(task) {
   modal.addEventListener('click', e => {
     if (e.target.classList.contains('modal-overlay')) modal.remove();
   });
+}
+
 }
 
 
@@ -571,6 +579,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
