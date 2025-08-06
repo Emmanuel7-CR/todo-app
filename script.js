@@ -338,7 +338,7 @@ function openViewModal(task) {
   });
 }
 
-}
+
 
 
 function updateProgressSummary() {
@@ -579,6 +579,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
