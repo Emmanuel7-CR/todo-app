@@ -307,7 +307,8 @@ function renderTodoFiltered(todos) {
 
 // Modal logic
 function openViewModal(task) {
-  const existing = document.querySelector('.modal-overlay');
+  // Only remove existing view modals, not all modals
+  const existing = document.querySelector('.modal-overlay.view-modal');
   if (existing) existing.remove();
 
   document.body.classList.add('modal-open'); // 🔒 Disable scroll
@@ -315,7 +316,7 @@ function openViewModal(task) {
   const isOverdue = !task.completed && new Date(task.dueDate) < new Date();
 
   const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
+  modal.className = 'modal-overlay view-modal'; // 👈 unique class added
   modal.innerHTML = `
     <div class="modal-content">
       <span class="close-modal">&times;</span>
@@ -354,6 +355,7 @@ function openViewModal(task) {
 
   modal.querySelector('.modal-content').scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 
 
@@ -602,6 +604,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
