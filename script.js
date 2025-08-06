@@ -341,6 +341,7 @@ function openViewModal(task) {
 
 
 
+
 function updateProgressSummary() {
   const completed = allTodos.filter(todo => todo.completed).length;
   const total = allTodos.length;
@@ -579,6 +580,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
