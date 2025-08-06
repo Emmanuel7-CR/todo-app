@@ -273,6 +273,7 @@ function renderTodoFiltered(todos) {
           </span>` : ''}
         <h2 class="edit-option" data-index="${index}">Edit</h2>
         <h2 class="delete-option" data-index="${index}">Delete</h2>
+        <h2 class="view-option" data-index="${index}">View</h2>
         <button class="complete-btn ${task.completed ? 'completed' : ''}" data-index="${index}">
           ${task.completed ? 'Completed' : 'Complete'}
         </button>
@@ -297,8 +298,40 @@ function renderTodoFiltered(todos) {
     btn.addEventListener('click', () => editTask(btn.dataset.index));
   });
 
+  document.querySelectorAll('.view-option').forEach(btn => {
+    btn.addEventListener('click', () => openViewModal(todos[btn.dataset.index]));
+  });
+
   updateProgressSummary();
 }
+
+// Modal logic
+function openViewModal(task) {
+  const existing = document.querySelector('.modal-overlay');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>${task.title}</h2>
+      <p><strong>Description:</strong> ${task.description}</p>
+      <p><strong>Due Date:</strong> ${new Date(task.dueDate).toLocaleString('en-NG', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      })}</p>
+      <p><strong>Status:</strong> ${task.completed ? 'Completed ✅' : 'Incomplete ❌'}</p>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => {
+    if (e.target.classList.contains('modal-overlay')) modal.remove();
+  });
+}
+
 
 function updateProgressSummary() {
   const completed = allTodos.filter(todo => todo.completed).length;
@@ -538,6 +571,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
