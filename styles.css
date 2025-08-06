@@ -481,18 +481,27 @@ h2.view-option{
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
-  max-height: 80vh;              /* Limit modal height */
-  overflow-y: auto;              /* Enable vertical scroll */
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden; /* prevent sideways scroll */
   box-shadow: 0 0 12px rgba(0, 255, 209, 0.5);
   position: relative;
   font-family: inherit;
+  word-wrap: break-word;       /* ✅ force wrap for long words */
+  overflow-wrap: break-word;   /* ✅ force wrap for unbroken text */
 }
+
 .modal-content::-webkit-scrollbar {
   width: 6px;
 }
 .modal-content::-webkit-scrollbar-thumb {
   background-color: #00ffd1;
   border-radius: 4px;
+}
+.modal-content p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.6;
 }
 
 .modal-content h2 {
@@ -602,6 +611,7 @@ h2.view-option{
     padding: 10px 15px;
   }
 }
+
 
 
 
