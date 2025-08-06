@@ -1,4 +1,4 @@
-const CACHE_NAME = 'todo-cache-v3.1';  // 🔄 Increment this when making changes
+const CACHE_NAME = 'todo-cache-v3.2';  // 🔄 Increment this when making changes
 const urlsToCache = [
   '/',
   '/index.html',
@@ -47,4 +47,5 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
 
