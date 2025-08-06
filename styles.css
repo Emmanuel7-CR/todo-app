@@ -460,6 +460,11 @@ h2.view-option{
 }
 
 /* Modal overlay */
+body.modal-open {
+  overflow: hidden;
+  height: 100vh;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -633,6 +638,7 @@ h2.view-option{
     padding: 10px 15px;
   }
 }
+
 
 
 
