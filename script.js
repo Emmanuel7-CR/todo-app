@@ -273,8 +273,7 @@ function renderTodoFiltered(todos) {
           </span>` : ''}
         <h2 class="edit-option" data-index="${index}">Edit</h2>
         <h2 class="delete-option" data-index="${index}">Delete</h2>
-       <button class="view-option action-btn" data-index="${index}">View</button>
-
+        <h2 class="view-option" data-index="${index}">View</h2>
         <button class="complete-btn ${task.completed ? 'completed' : ''}" data-index="${index}">
           ${task.completed ? 'Completed' : 'Complete'}
         </button>
