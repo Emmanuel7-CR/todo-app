@@ -266,7 +266,8 @@ form {
 }
  
 h2.edit-option,
-h2.delete-option {
+h2.delete-option,
+h2.view-option{
   justify-self: right;
   align-self: start;
   display: flex;
@@ -286,7 +287,8 @@ h2.delete-option {
   .delete-option,
   .complete-btn,
   h2.edit-option,
-  h2.delete-option {
+  h2.delete-option,
+  h2.view-option{
     width: 100%;
     margin: 8px 0;
     font-size: 14px;
@@ -585,4 +587,5 @@ h2.delete-option {
     padding: 10px 15px;
   }
 }
+
 
