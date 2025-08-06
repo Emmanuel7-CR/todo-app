@@ -2,8 +2,9 @@
   "name": "Smart Todo",
   "short_name": "Todo",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#111",
+  "background_color": "#111111",
   "theme_color": "#ffffff",
   "icons": [
     {
@@ -12,13 +13,13 @@
       "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
+      "src": "icons/icon-256.png",
+      "sizes": "256x256",
       "type": "image/png"
     },
     {
-      "src": "icons/icon-256.png",
-      "sizes": "256x256",
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ],
@@ -26,8 +27,7 @@
     {
       "src": "icons/screenshot-wide.png",
       "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide"
+      "type": "image/png"
     },
     {
       "src": "icons/screenshot-mobile.png",
