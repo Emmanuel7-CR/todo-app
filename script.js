@@ -368,6 +368,11 @@ function updateProgressSummary() {
 
 function deleteTask(index) {
   const modal = document.getElementById('confirm-modal');
+  
+  if (!modal) {
+    console.error("❌ Confirm modal not found!");
+    return;
+  }
   const yesBtn = document.getElementById('confirm-yes');
   const noBtn = document.getElementById('confirm-no');
 
@@ -597,6 +602,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
