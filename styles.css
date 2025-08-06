@@ -495,7 +495,7 @@ body.modal-open {
   color: white;
   padding: 24px;
   border-radius: 12px;
-  width: 90%;
+  width: 100%;
   max-width: 400px;
   max-height: 80vh;
   overflow-y: auto;
@@ -506,9 +506,10 @@ body.modal-open {
   word-wrap: break-word;
   overflow-wrap: break-word;
   line-height: 1.6;
-  transform: scale(0.95);
   animation: zoomIn 0.25s ease forwards;
+  transform-origin: center center;
 }
+
 
 /* === Modal Box Zoom Animation === */
 @keyframes zoomIn {
@@ -639,6 +640,7 @@ body.modal-open {
     padding: 10px 15px;
   }
 }
+
 
 
 
