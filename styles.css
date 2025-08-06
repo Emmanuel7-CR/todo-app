@@ -459,6 +459,7 @@ h2.view-option{
   white-space: nowrap;
 }
 
+/* Modal overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -469,31 +470,35 @@ h2.view-option{
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
+/* Modal content */
 .modal-content {
-  background: white;
-  padding: 2rem;
+  background-color: #1e1e1e; /* dark background */
+  color: white;              /* white text */
+  padding: 24px;
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
+  box-shadow: 0 0 12px rgba(0, 255, 209, 0.5);
   position: relative;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   font-family: inherit;
 }
-
 .modal-content h2 {
   margin-top: 0;
 }
 
+/* Close (×) button */
 .close-modal {
   position: absolute;
   top: 10px;
   right: 16px;
   font-size: 1.5rem;
   cursor: pointer;
+  color: #00ffd1;
 }
+
 
 
 /* 🔁 RESPONSIVE for mobile screens */
@@ -587,5 +592,6 @@ h2.view-option{
     padding: 10px 15px;
   }
 }
+
 
 
