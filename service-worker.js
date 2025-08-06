@@ -1,4 +1,4 @@
-const CACHE_NAME = 'todo-cache-v1';
+const CACHE_NAME = 'todo-cache-v3';  // 🔄 Increment this when making changes
 const urlsToCache = [
   '/',
   '/index.html',
@@ -12,41 +12,38 @@ const urlsToCache = [
   '/icons/screenshot-wide.png'
 ];
 
-// Install: cache core assets
+// INSTALL: Cache assets immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // Activate immediately
+  self.skipWaiting(); // Activate this service worker immediately
 });
 
-// Activate: remove old caches
+// ACTIVATE: Clean up old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
+        keys
+          .filter(key => key !== CACHE_NAME) // Keep only current version
+          .map(key => caches.delete(key))    // Delete others
       )
     )
   );
-  self.clients.claim(); // Take control of pages immediately
+  self.clients.claim(); // Start controlling all clients immediately
 });
 
-// Fetch: serve from cache or fetch from network
+// FETCH: Serve from cache, then try network
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return (
-        cached ||
-        fetch(event.request).catch(() => {
-          if (event.request.headers.get('accept').includes('text/html')) {
-            return caches.match('/index.html');
-          }
-        })
-      );
+    caches.match(event.request).then(cachedResponse => {
+      // Fallback: if HTML page fails, serve cached index.html
+      return cachedResponse || fetch(event.request).catch(() => {
+        if (event.request.headers.get('accept')?.includes('text/html')) {
+          return caches.match('/index.html');
+        }
+      });
     })
   );
 });
-
