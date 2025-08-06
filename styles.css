@@ -475,16 +475,26 @@ h2.view-option{
 
 /* Modal content */
 .modal-content {
-  background-color: #1e1e1e; /* dark background */
-  color: white;              /* white text */
+  background-color: #1e1e1e;
+  color: white;
   padding: 24px;
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
+  max-height: 80vh;              /* Limit modal height */
+  overflow-y: auto;              /* Enable vertical scroll */
   box-shadow: 0 0 12px rgba(0, 255, 209, 0.5);
   position: relative;
   font-family: inherit;
 }
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: #00ffd1;
+  border-radius: 4px;
+}
+
 .modal-content h2 {
   margin-top: 0;
 }
@@ -592,6 +602,7 @@ h2.view-option{
     padding: 10px 15px;
   }
 }
+
 
 
 
