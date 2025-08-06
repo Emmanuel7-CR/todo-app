@@ -465,6 +465,11 @@ body.modal-open {
   height: 100vh;
 }
 
+body.modal-open #main-content {
+  filter: blur(4px);
+  transition: filter 0.3s ease;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -638,6 +643,7 @@ body.modal-open {
     padding: 10px 15px;
   }
 }
+
 
 
 
