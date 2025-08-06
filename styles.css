@@ -459,44 +459,43 @@ h2.view-option{
   white-space: nowrap;
 }
 
-/* Modal overlay */
-body.modal-open {
-  overflow: hidden;
-  height: 100vh;
-}
 
+/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0;
-  width: 100%; height: 100vh; /* Make sure it's full viewport */
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999;
-  padding: 16px; /* Optional: improves mobile spacing */
   animation: fadeIn 0.3s ease-out forwards;
+  padding: 16px; /* Add spacing on smaller screens */
+  box-sizing: border-box;
 }
-/* === MODAL FADE-IN === */
+
+/* Fade in animation */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* === MODAL FADE-OUT === */
+/* Fade out animation */
 @keyframes fadeOut {
   from { opacity: 1; }
   to { opacity: 0; }
 }
 
-/* Modal content */
+/* Modal Content */
 .modal-content {
   background-color: #1e1e1e;
   color: white;
   padding: 24px;
   border-radius: 12px;
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -506,38 +505,24 @@ body.modal-open {
   word-wrap: break-word;
   overflow-wrap: break-word;
   line-height: 1.6;
+  transform: scale(0.95);
   animation: zoomIn 0.25s ease forwards;
-  transform-origin: center center;
 }
 
-
-/* === Modal Box Zoom Animation === */
+/* Modal zoom in animation */
 @keyframes zoomIn {
   to { transform: scale(1); }
 }
 
+/* Modal zoom out animation */
 @keyframes zoomOut {
-  to { transform: scale(0.9); opacity: 0; }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
 }
 
-.modal-content::-webkit-scrollbar {
-  width: 6px;
-}
-.modal-content::-webkit-scrollbar-thumb {
-  background-color: #00ffd1;
-  border-radius: 4px;
-}
-.modal-content p {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.6;
-}
-
-.modal-content h2 {
-  margin-top: 0;
-}
-
-/* Close (×) button */
+/* Close button */
 .close-modal {
   position: absolute;
   top: 10px;
@@ -545,6 +530,32 @@ body.modal-open {
   font-size: 1.5rem;
   cursor: pointer;
   color: #00ffd1;
+}
+
+/* Custom scrollbar for modal */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: #00ffd1;
+  border-radius: 4px;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 480px) {
+  .modal-content {
+    padding: 16px;
+    font-size: 0.95rem;
+    max-height: 85vh;
+  }
+
+  .modal-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-content p {
+    font-size: 0.95rem;
+  }
 }
 
 
@@ -640,6 +651,7 @@ body.modal-open {
     padding: 10px 15px;
   }
 }
+
 
 
 
