@@ -624,7 +624,7 @@ h2.view-option{
 
   
   .modal-content {
-    width: 90%;
+    width: 60%;
     font-size: 14px;
   }
 
@@ -651,6 +651,7 @@ h2.view-option{
     padding: 10px 15px;
   }
 }
+
 
 
 
