@@ -310,6 +310,8 @@ function openViewModal(task) {
   const existing = document.querySelector('.modal-overlay');
   if (existing) existing.remove();
 
+  document.body.classList.add('modal-open'); // 🔒 Disable scroll
+
   const isOverdue = !task.completed && new Date(task.dueDate) < new Date();
 
   const modal = document.createElement('div');
@@ -332,13 +334,15 @@ function openViewModal(task) {
   `;
   document.body.appendChild(modal);
 
-  // Close logic with fade-out
   function closeModal() {
     const content = modal.querySelector('.modal-content');
     modal.style.animation = 'fadeOut 0.3s ease forwards';
     content.style.animation = 'zoomOut 0.25s ease forwards';
 
-    setTimeout(() => modal.remove(), 300); // Wait for animation to finish
+    setTimeout(() => {
+      modal.remove();
+      document.body.classList.remove('modal-open'); // ✅ Re-enable scroll
+    }, 300);
   }
 
   modal.querySelector('.close-modal').addEventListener('click', closeModal);
@@ -348,11 +352,7 @@ function openViewModal(task) {
     }
   });
 
-  // Scroll to top smoothly (optional)
-  modal.querySelector('.modal-content').scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
+  modal.querySelector('.modal-content').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 
@@ -597,6 +597,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
