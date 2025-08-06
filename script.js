@@ -332,9 +332,26 @@ function openViewModal(task) {
   `;
   document.body.appendChild(modal);
 
-  modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+  // Close logic with fade-out
+  function closeModal() {
+    const content = modal.querySelector('.modal-content');
+    modal.style.animation = 'fadeOut 0.3s ease forwards';
+    content.style.animation = 'zoomOut 0.25s ease forwards';
+
+    setTimeout(() => modal.remove(), 300); // Wait for animation to finish
+  }
+
+  modal.querySelector('.close-modal').addEventListener('click', closeModal);
   modal.addEventListener('click', e => {
-    if (e.target.classList.contains('modal-overlay')) modal.remove();
+    if (e.target.classList.contains('modal-overlay')) {
+      closeModal();
+    }
+  });
+
+  // Scroll to top smoothly (optional)
+  modal.querySelector('.modal-content').scrollTo({
+    top: 0,
+    behavior: 'smooth'
   });
 }
 
@@ -580,6 +597,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
