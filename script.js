@@ -414,7 +414,7 @@ function editTask(index) {
     </div>
     <p class="error-message">Please input the task title</p>
     <div class="floating-input">
-      <input type="text" id="task-description" value="${todo.description}" autocomplete="off" />
+      <textarea type="text" id="task-description" value="${todo.description}" autocomplete="off" />
       <label for="task-description">Task Description</label>
     </div>
     <div class="non-floating-input">
@@ -604,6 +604,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
