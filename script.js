@@ -489,10 +489,10 @@ function taskForm() {
       <label for="task-title">Task Title</label>
     </div>
     <p class="error-message">Please input the task title</p>
-    <div class="floating-input">
-  <textarea id="task-description" rows="3" autocomplete="off"></textarea>
-  <label for="task-description">Task Description</label>
-</div>
+   <div class="floating-input"> 
+   <input type="text" id="task-description" autocomplete="off" />
+   <label for="task-description">Task Description</label> 
+   </div>
 
     <div class="non-floating-input">
       <label for="custom-date">Due Date</label>
@@ -605,6 +605,7 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
   startReminderLoop();
 });
+
 
 
 
