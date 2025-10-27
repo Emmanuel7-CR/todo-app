@@ -547,4 +547,29 @@ h2.delete-option {
     font-size: 14px;
     padding: 10px 15px;
   }
+
+  * Make buttons larger and vertical */
+  .edit-option,
+  .delete-option,
+  .complete-btn {
+    min-height: 44px;
+    padding: 10px;
+    font-size: 16px;
+    margin: 6px 0;
+    width: 100%;
+  }
+
+  /* Stack buttons vertically */
+  #todo-list div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Ensure the counter stays visible */
+  #todo-list div::before {
+    order: -1;
+    align-self: flex-start;
+  }
 }
+

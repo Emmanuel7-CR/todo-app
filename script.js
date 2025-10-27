@@ -169,7 +169,12 @@ searchInput.addEventListener('input', (e) => {
 });
 
 function saveTodos() {
-  localStorage.setItem('todos', JSON.stringify(allTodos));
+  try {
+    localStorage.setItem('todos', JSON.stringify(allTodos));
+  } catch (e) {
+    showToast('Failed to save tasks. Storage may be full.', 'error');
+    console.error('Storage error:', e);
+  }
 }
 
 function getTodos() {
@@ -196,31 +201,69 @@ function renderTodoFiltered(todos) {
   const todoList = document.getElementById('todo-list');
   todoList.innerHTML = "";
 
+  if (todos.length === 0) {
+  const empty = document.createElement('p');
+  empty.textContent = allTodos.length === 0 
+    ? '📭 No tasks yet. Tap "+" to add one!' 
+    : '🔍 No tasks match your search.';
+  empty.style.cssText = 'text-align: center; margin-top: 100px; color: var(--secondary-color);';
+  todoList.appendChild(empty);
+}
+
   todos.forEach((task, index) => {
-    todoList.innerHTML += `
-      <div>
-        <h2 style="${task.completed ? 'text-decoration: line-through;' : ''}">
-         ${task.title} ${!task.completed && new Date(task.dueDate) < new Date() ? '⚠️' : ''}
-        </h2>
-        <p style="${task.completed ? 'text-decoration: line-through;' : ''}">
-          Due Date: ${new Date(task.dueDate).toLocaleString('en-NG', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
-          })}
-        </p>
-        ${!task.completed && new Date(task.dueDate) < new Date() ? `
-          <span style="background: red; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">
-            OVERDUE
-          </span>` : ''}
-        <h2 class="edit-option" data-index="${index}">Edit</h2>
-        <h2 class="delete-option" data-index="${index}">Delete</h2>
-        <button class="complete-btn ${task.completed ? 'completed' : ''}" data-index="${index}">
-          ${task.completed ? 'Completed' : 'Complete'}
-        </button>
-      </div>
-    `;
+    const div = document.createElement('div');
+
+    const titleEl = document.createElement('h2');
+    titleEl.textContent = task.title;
+    if (task.completed) titleEl.style.textDecoration = 'line-through';
+    if (!task.completed && new Date(task.dueDate) < new Date()) {
+      titleEl.textContent += ' ⚠️';
+    }
+
+    const dueDate = new Date(task.dueDate).toLocaleString('en-NG', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+    const dueEl = document.createElement('p');
+    dueEl.textContent = `Due Date: ${dueDate}`;
+    if (task.completed) dueEl.style.textDecoration = 'line-through';
+
+    const container = document.createElement('div');
+    container.appendChild(titleEl);
+    container.appendChild(dueEl);
+
+    if (!task.completed && new Date(task.dueDate) < new Date()) {
+      const overdue = document.createElement('span');
+      overdue.textContent = 'OVERDUE';
+      overdue.style.cssText = "background: red; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;";
+      container.appendChild(overdue);
+    }
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-option';
+    editBtn.dataset.index = index;
+    editBtn.setAttribute('aria-label', `Edit task: ${task.title}`);
+    editBtn.textContent = 'Edit';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-option';
+    deleteBtn.dataset.index = index;
+    deleteBtn.setAttribute('aria-label', `Delete task: ${task.title}`);
+    deleteBtn.textContent = 'Delete';
+
+    const completeBtn = document.createElement('button');
+    completeBtn.className = `complete-btn ${task.completed ? 'completed' : ''}`;
+    completeBtn.dataset.index = index;
+    completeBtn.textContent = task.completed ? 'Completed' : 'Complete';
+
+    div.appendChild(container);
+    div.appendChild(editBtn);
+    div.appendChild(deleteBtn);
+    div.appendChild(completeBtn);
+    todoList.appendChild(div);
   });
 
+  // Reattach event listeners
   document.querySelectorAll('.complete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const i = btn.dataset.index;
@@ -254,6 +297,7 @@ function deleteTask(index) {
   const noBtn = document.getElementById('confirm-no');
 
   modal.style.display = 'flex';
+  trapFocusInModal(modal); 
 
   const confirmHandler = () => {
     allTodos.splice(index, 1);
@@ -428,8 +472,52 @@ function taskForm() {
   history.pushState({ page: 'form' }, '', '#form');
 }
 
+function trapFocusInModal(modalElement) {
+  const focusableElements = modalElement.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  const first = focusableElements[0];
+  const last = focusableElements[focusableElements.length - 1];
+
+  modalElement.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  });
+
+  if (first) first.focus();
+}
 
 
+function showToast(message, type = 'info') {
+  // Remove existing toasts
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${type === 'error' ? 'var(--error-color)' : 'var(--accent-color)'};
+    color: var(--background);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
 
 
 
