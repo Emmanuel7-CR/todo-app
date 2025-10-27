@@ -1,7 +1,11 @@
 'use strict';
 
+// === EXTERNAL DEPENDENCIES ===
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
 import { getMessaging, getToken } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-messaging.js';
+
+// Note: Ensure localForage is loaded in index.html:
+// <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 
 const firebaseConfig = {
   apiKey: "AIzaSyDfT-dd5B30EcCeHHbZ-iIzRwVg1sLP0ek",
@@ -19,7 +23,6 @@ async function getPushToken() {
     const token = await getToken(messaging, {
       vapidKey: "BPY2MxTs0UUWymlN9eHvZSzERaipZ8Gh7l55DXnXSOsKy5enxQmg0VvuVN5PpKxlMi_vs0jpMsbOj5mrY2YsuA4"
     });
-
     if (token) {
       console.log("🔐 Push token:", token);
     } else {
@@ -45,170 +48,81 @@ if ('Notification' in window && Notification.permission !== 'granted') {
 const alertSound = new Audio('sounds/alert.mp3');
 alertSound.load();
 
-// === REMINDER LOOP ===
-function checkAndSendReminders() {
-  const now = new Date();
-  allTodos.forEach((todo, index) => {
-    const dueTime = new Date(todo.dueDate);
-    if (
-      !todo.completed &&
-      todo.reminderCount === 0 &&
-      Math.abs(now - dueTime) <= 15000
-    ) {
-      console.log(`🕒 Task due: ${todo.title} at ${dueTime.toLocaleString()}`);
-      sendReminderNotification(todo.title, todo.description);
-      allTodos[index].reminderCount += 1;
-      saveTodos();
-    }
-  });
-}
+// === GLOBAL STATE ===
+let allTodos = [];
 
+// === STORAGE KEYS ===
+const STORAGE_KEY = 'todos_v2';
+const SETTINGS_KEY = 'user_settings';
 
+// === DEFAULT SETTINGS ===
+const DEFAULT_SETTINGS = {
+  soundEnabled: true,
+  reminderLeadTimeMinutes: 15,
+  snoozeMinutes: 5
+};
 
-const addButton = document.getElementById('add-btn');
-const searchInput = document.getElementById('search-input');
-
-//Search functionality
-document.addEventListener('DOMContentLoaded', () => {
-  const searchBtn = document.getElementById('search-icon');
-  const searchWrapper = document.getElementById('search-wrapper');
-  const searchInput = document.getElementById('search-input');
-  const installBtn = document.getElementById('install-button'); // ✅ Declare once
-
-  // === Search Box Logic ===
-  if (searchBtn && searchWrapper && searchInput) {
-    searchBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      searchWrapper.style.display = 'flex';
-      searchInput.focus();
-    });
-
-    searchWrapper.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-
-    document.addEventListener('click', () => {
-      searchWrapper.style.display = 'none';
-
-      const query = searchInput.value.trim().toLowerCase();
-      const matchExists = allTodos.some(todo =>
-        todo.title.toLowerCase().includes(query) ||
-        todo.description.toLowerCase().includes(query) ||
-        todo.dueDate.toLowerCase().includes(query)
-      );
-
-      if (!matchExists && query !== '') {
-        searchInput.value = '';
-        renderTodoFiltered(allTodos);
-      }
-    });
-  }
-
-  // === Custom Install Button Logic ===
-let deferredPrompt = null;
-
-
-// Function to adjust install button label based on screen size
-function updateInstallButton() {
-  if (!installBtn) return;
-  if (window.innerWidth <= 480) {
-    installBtn.textContent = '📲';
-  } else {
-    installBtn.textContent = '📲 Install App';
-  }
-}
-
-// Run initially
-updateInstallButton();
-
-// Update whenever screen is resized
-window.addEventListener('resize', updateInstallButton);
-
-// Listen for install prompt
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  if (installBtn) {
-    installBtn.style.display = 'block';
-    installBtn.classList.add('pulse');
-
-    setTimeout(() => {
-      installBtn.classList.remove('pulse');
-    }, 4500);
-
-    installBtn.addEventListener('click', async () => {
-      installBtn.style.display = 'none';
-
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to install: ${outcome}`);
-        deferredPrompt = null;
-      }
-    });
-  }
-});
-
-});
-
-
-let allTodos = getTodos();
-renderTodoFiltered(allTodos);
-updateProgressSummary();
-
-
-searchInput.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase();
-  const filteredTodos = allTodos.filter(todo =>
-    todo.title.toLowerCase().includes(query) ||
-    todo.description.toLowerCase().includes(query) ||
-    todo.dueDate.toLowerCase().includes(query)
-  );
-  renderTodoFiltered(filteredTodos);
-});
-
-function saveTodos() {
+// === STORAGE HELPERS ===
+async function saveTodos() {
   try {
-    localStorage.setItem('todos', JSON.stringify(allTodos));
+    await localForage.setItem(STORAGE_KEY, allTodos);
+    localStorage.removeItem('todos'); // cleanup legacy
   } catch (e) {
-    showToast('Failed to save tasks. Storage may be full.', 'error');
-    console.error('Storage error:', e);
+    showToast('Failed to save tasks.', 'error');
+    console.error(e);
   }
 }
 
-function getTodos() {
-  const json = localStorage.getItem('todos');
-  if (!json) return [];
-  return JSON.parse(json).map(todo => ({
-    ...todo,
-    completed: todo.completed ?? false,
-  }));
+async function loadTodos() {
+  try {
+    const todos = await localForage.getItem(STORAGE_KEY);
+    if (todos) return todos;
+
+    const legacy = localStorage.getItem('todos');
+    if (legacy) {
+      const parsed = JSON.parse(legacy).map(t => ({ ...t, completed: t.completed ?? false }));
+      await localForage.setItem(STORAGE_KEY, parsed);
+      localStorage.removeItem('todos');
+      return parsed;
+    }
+    return [];
+  } catch (e) {
+    console.warn('Failed to load todos, using empty list.', e);
+    return [];
+  }
 }
 
-function addTodo(title, description, dueDateISO) {
-  allTodos.push({
-    title,
-    description,
-    dueDate: dueDateISO,
-    completed: false,
-    reminderCount: 0
-  });
-  saveTodos();
+async function loadSettings() {
+  try {
+    const saved = await localForage.getItem(SETTINGS_KEY);
+    return { ...DEFAULT_SETTINGS, ...saved };
+  } catch (e) {
+    console.warn('Failed to load settings, using defaults.', e);
+    return DEFAULT_SETTINGS;
+  }
 }
 
+async function saveSettings(settings) {
+  try {
+    await localForage.setItem(SETTINGS_KEY, settings);
+  } catch (e) {
+    console.error('Failed to save settings:', e);
+  }
+}
+
+// === UI RENDERING ===
 function renderTodoFiltered(todos) {
   const todoList = document.getElementById('todo-list');
   todoList.innerHTML = "";
 
   if (todos.length === 0) {
-  const empty = document.createElement('p');
-  empty.textContent = allTodos.length === 0 
-    ? '📭 No tasks yet. Tap "+" to add one!' 
-    : '🔍 No tasks match your search.';
-  empty.style.cssText = 'text-align: center; margin-top: 100px; color: var(--secondary-color);';
-  todoList.appendChild(empty);
-}
+    const empty = document.createElement('p');
+    empty.textContent = allTodos.length === 0 
+      ? '📭 No tasks yet. Tap "+" to add one!' 
+      : '🔍 No tasks match your search.';
+    empty.style.cssText = 'text-align: center; margin-top: 100px; color: var(--secondary-color);';
+    todoList.appendChild(empty);
+  }
 
   todos.forEach((task, index) => {
     const div = document.createElement('div');
@@ -291,13 +205,25 @@ function updateProgressSummary() {
   document.getElementById('progress-summary').textContent = progressText;
 }
 
+// === TASK OPERATIONS ===
+function addTodo(title, description, dueDateISO) {
+  allTodos.push({
+    title,
+    description,
+    dueDate: dueDateISO,
+    completed: false,
+    reminderCount: 0
+  });
+  saveTodos();
+}
+
 function deleteTask(index) {
   const modal = document.getElementById('confirm-modal');
   const yesBtn = document.getElementById('confirm-yes');
   const noBtn = document.getElementById('confirm-no');
 
   modal.style.display = 'flex';
-  trapFocusInModal(modal); 
+  trapFocusInModal(modal);
 
   const confirmHandler = () => {
     allTodos.splice(index, 1);
@@ -472,12 +398,13 @@ function taskForm() {
   history.pushState({ page: 'form' }, '', '#form');
 }
 
+// === ACCESSIBILITY ===
 function trapFocusInModal(modalElement) {
   const focusableElements = modalElement.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   const first = focusableElements[0];
   const last = focusableElements[focusableElements.length - 1];
 
-  modalElement.addEventListener('keydown', (e) => {
+  const handleKeydown = (e) => {
     if (e.key === 'Tab') {
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
@@ -486,15 +413,65 @@ function trapFocusInModal(modalElement) {
         e.preventDefault();
         first.focus();
       }
+    } else if (e.key === 'Escape') {
+      modalElement.style.display = 'none';
+      modalElement.removeEventListener('keydown', handleKeydown);
     }
-  });
+  };
 
+  modalElement.addEventListener('keydown', handleKeydown);
   if (first) first.focus();
 }
 
+// === NOTIFICATIONS ===
+async function sendReminderNotification(title, description) {
+  if (Notification.permission !== 'granted') return;
 
+  new Notification('🔔 Task Reminder', {
+    body: `${title}\n${description || ''}`,
+    icon: 'icons/icon-192.png'
+  });
+
+  const settings = await loadSettings();
+  if (settings.soundEnabled) {
+    alertSound.play().catch(() => {});
+  }
+}
+
+// === REMINDERS (TIMEOUT-BASED) ===
+let scheduledTimeouts = [];
+
+function clearAllReminders() {
+  scheduledTimeouts.forEach(id => clearTimeout(id));
+  scheduledTimeouts = [];
+}
+
+async function scheduleReminders() {
+  clearAllReminders();
+  const settings = await loadSettings();
+  const leadMs = settings.reminderLeadTimeMinutes * 60 * 1000;
+
+  const now = Date.now();
+  const upcomingTasks = allTodos
+    .filter(todo => !todo.completed && todo.reminderCount === 0)
+    .map(todo => ({ ...todo, dueMs: new Date(todo.dueDate).getTime() }))
+    .filter(todo => todo.dueMs > now && todo.dueMs - now <= 2 * 60 * 60 * 1000); // next 2 hours
+
+  upcomingTasks.forEach(todo => {
+    const delay = Math.max(0, todo.dueMs - now - leadMs);
+    const id = setTimeout(async () => {
+      const current = allTodos.find(t => t.title === todo.title && t.dueDate === todo.dueDate);
+      if (!current || current.completed) return;
+      sendReminderNotification(todo.title, todo.description);
+      current.reminderCount = 1;
+      saveTodos();
+    }, delay);
+    scheduledTimeouts.push(id);
+  });
+}
+
+// === TOAST ===
 function showToast(message, type = 'info') {
-  // Remove existing toasts
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
 
@@ -519,51 +496,188 @@ function showToast(message, type = 'info') {
   setTimeout(() => toast.remove(), 3000);
 }
 
+// === FINAL INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load data
+  allTodos = await loadTodos();
+  renderTodoFiltered(allTodos);
+  updateProgressSummary();
 
-
-function sendReminderNotification(title, description) {
-  if (Notification.permission === 'granted') {
-    new Notification('🔔 Task Reminder', {
-      body: `${title}\n${description || ''}`,
-      icon: 'icons/icon-192.png'
-    });
-
-    alertSound.play().catch(() => {
-      console.warn("🔇 Sound playback blocked (user gesture needed).");
+  // Search
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allTodos.filter(todo =>
+        todo.title.toLowerCase().includes(query) ||
+        todo.description.toLowerCase().includes(query) ||
+        todo.dueDate.toLowerCase().includes(query)
+      );
+      renderTodoFiltered(filtered);
     });
   }
-}
 
+  // Search UI
+  const searchBtn = document.getElementById('search-icon');
+  const searchWrapper = document.getElementById('search-wrapper');
+  if (searchBtn && searchWrapper && searchInput) {
+    searchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      searchWrapper.style.display = 'flex';
+      searchInput.focus();
+    });
+    searchWrapper.addEventListener('click', (e) => e.stopPropagation());
+    document.addEventListener('click', () => {
+      searchWrapper.style.display = 'none';
+      const q = searchInput.value.trim().toLowerCase();
+      if (q && !allTodos.some(t =>
+        t.title.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.dueDate.toLowerCase().includes(q)
+      )) {
+        searchInput.value = '';
+        renderTodoFiltered(allTodos);
+      }
+    });
+  }
 
-function startReminderLoop() {
-  console.log("🔁 Reminder loop started");
-  checkAndSendReminders();
-  setInterval(checkAndSendReminders, 5000); // 5 seconds for testing
-}
+  // Install button
+  const installBtn = document.getElementById('install-button');
+  let deferredPrompt = null;
 
+  const updateInstallButton = () => {
+    if (installBtn) {
+      installBtn.textContent = window.innerWidth <= 480 ? '📲' : '📲 Install App';
+    }
+  };
+  updateInstallButton();
+  window.addEventListener('resize', updateInstallButton);
 
-// Final setup
-addButton.addEventListener('click', taskForm);
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) {
+      installBtn.style.display = 'block';
+      installBtn.classList.add('pulse');
+      setTimeout(() => installBtn.classList.remove('pulse'), 4500);
+      const handler = async () => {
+        installBtn.style.display = 'none';
+        installBtn.removeEventListener('click', handler);
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to install: ${outcome}`);
+          deferredPrompt = null;
+        }
+      };
+      installBtn.addEventListener('click', handler);
+    }
+  });
+
+  // Export / Import
+  document.getElementById('export-btn')?.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(allTodos, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `todo-tasks-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('import-btn')?.addEventListener('click', () => {
+    document.getElementById('import-input')?.click();
+  });
+
+  document.getElementById('import-input')?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+      if (!Array.isArray(imported)) throw new Error('Invalid format');
+      const valid = imported.every(t =>
+        typeof t.title === 'string' &&
+        typeof t.dueDate === 'string' &&
+        !isNaN(new Date(t.dueDate).getTime())
+      );
+      if (!valid) throw new Error('Invalid task data');
+
+      allTodos = imported.map(t => ({
+        title: t.title,
+        description: t.description || '',
+        dueDate: t.dueDate,
+        completed: Boolean(t.completed),
+        reminderCount: t.reminderCount || 0
+      }));
+      await saveTodos();
+      renderTodoFiltered(allTodos);
+      scheduleReminders();
+      showToast('Tasks imported successfully!', 'info');
+    } catch (err) {
+      showToast('Import failed: ' + (err.message || 'Invalid file'), 'error');
+    }
+    e.target.value = '';
+  });
+
+  // Settings Modal
+  const settingsModal = document.getElementById('settings-modal');
+  const settingsBtn = document.getElementById('settings-btn');
+  const soundToggle = document.getElementById('sound-toggle');
+  const leadTimeSelect = document.getElementById('lead-time');
+  const settingsSaveBtn = document.getElementById('settings-save');
+  const settingsCancelBtn = document.getElementById('settings-cancel');
+
+  if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', async () => {
+      const settings = await loadSettings();
+      soundToggle.checked = settings.soundEnabled;
+      leadTimeSelect.value = settings.reminderLeadTimeMinutes.toString();
+      settingsModal.style.display = 'flex';
+      trapFocusInModal(settingsModal);
+    });
+
+    const closeSettings = () => {
+      settingsModal.style.display = 'none';
+    };
+
+    settingsCancelBtn?.addEventListener('click', closeSettings);
+    settingsSaveBtn?.addEventListener('click', async () => {
+      const newSettings = {
+        soundEnabled: soundToggle.checked,
+        reminderLeadTimeMinutes: parseInt(leadTimeSelect.value, 10),
+        snoozeMinutes: DEFAULT_SETTINGS.snoozeMinutes
+      };
+      await saveSettings(newSettings);
+      showToast('Settings saved!', 'info');
+      closeSettings();
+      scheduleReminders(); // re-schedule with new lead time
+    });
+
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) closeSettings();
+    });
+  }
+
+  // Start reminders
+  scheduleReminders();
+});
+
+// Global event listeners
+document.getElementById('add-btn')?.addEventListener('click', taskForm);
 
 window.addEventListener('popstate', (event) => {
-  if (event.state && event.state.page === 'form') {
+  if (event.state?.page === 'form') {
     document.getElementById('form-container').innerHTML = "";
     document.getElementById('todo-list').style.display = 'block';
   }
 });
 
-
-
-
-// Register service worker
+// Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
     .then(reg => console.log('✅ Service Worker registered:', reg.scope))
     .catch(err => console.error('❌ Service Worker registration failed:', err));
 }
-
-
-// === Call Reminder Loop after DOM Ready ===
-document.addEventListener('DOMContentLoaded', () => {
-  startReminderLoop();
-});

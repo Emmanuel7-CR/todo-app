@@ -1,6 +1,7 @@
 {
   "name": "Smart Todo",
   "short_name": "Todo",
+  "description": "A simple, accessible todo app with reminders",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111",
