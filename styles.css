@@ -548,7 +548,7 @@ h2.delete-option {
     padding: 10px 15px;
   }
 
-  * Make buttons larger and vertical */
+  /* Make buttons larger and vertical */
   .edit-option,
   .delete-option,
   .complete-btn {
