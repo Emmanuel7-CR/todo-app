@@ -153,6 +153,12 @@ function renderTodoFiltered(todos) {
       container.appendChild(overdue);
     }
 
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'view-option';
+    viewBtn.dataset.index = index;
+    viewBtn.setAttribute('aria-label', `View task: ${task.title}`);
+    viewBtn.textContent = 'View';
+
     const editBtn = document.createElement('button');
     editBtn.className = 'edit-option';
     editBtn.dataset.index = index;
@@ -170,11 +176,12 @@ function renderTodoFiltered(todos) {
     completeBtn.dataset.index = index;
     completeBtn.textContent = task.completed ? 'Completed' : 'Complete';
 
-    div.appendChild(container);
-    div.appendChild(editBtn);
-    div.appendChild(deleteBtn);
-    div.appendChild(completeBtn);
-    todoList.appendChild(div);
+div.appendChild(container);
+div.appendChild(viewBtn);
+div.appendChild(editBtn);
+div.appendChild(deleteBtn);
+div.appendChild(completeBtn);
+todoList.appendChild(div);
   });
 
   // Reattach event listeners
@@ -186,6 +193,10 @@ function renderTodoFiltered(todos) {
       renderTodoFiltered(allTodos);
     });
   });
+
+  document.querySelectorAll('.view-option').forEach(btn => {
+  btn.addEventListener('click', () => viewTask(btn.dataset.index));
+});
 
   document.querySelectorAll('.delete-option').forEach(btn => {
     btn.addEventListener('click', () => deleteTask(btn.dataset.index));
@@ -318,6 +329,43 @@ function editTask(index) {
       todoList.style.display = 'block';
       history.pushState({ page: 'form' }, '', '#form');
     }
+  });
+}
+
+function viewTask(index) {
+  const todo = allTodos[index];
+  const modal = document.getElementById('view-modal');
+  const modalTitle = document.getElementById('view-title');
+  const modalDescription = document.getElementById('view-description');
+  const modalDueDate = document.getElementById('view-due-date');
+  const modalStatus = document.getElementById('view-status');
+  const closeBtn = document.getElementById('view-close');
+
+  // Populate modal content
+  modalTitle.textContent = todo.title;
+  modalDescription.textContent = todo.description || 'No description provided';
+  
+  const dueDate = new Date(todo.dueDate).toLocaleString('en-NG', {
+    dateStyle: 'full',
+    timeStyle: 'short'
+  });
+  modalDueDate.textContent = dueDate;
+  
+  modalStatus.textContent = todo.completed ? '✅ Completed' : '⏳ Pending';
+  modalStatus.style.color = todo.completed ? '#00FFCA' : '#FF4C4C';
+
+  modal.style.display = 'flex';
+  trapFocusInModal(modal);
+
+  const closeHandler = () => {
+    modal.style.display = 'none';
+    closeBtn.removeEventListener('click', closeHandler);
+  };
+
+  closeBtn.addEventListener('click', closeHandler);
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeHandler();
   });
 }
 

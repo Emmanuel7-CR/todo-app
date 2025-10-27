@@ -573,3 +573,120 @@ h2.delete-option {
   }
 }
 
+
+
+
+
+.view-option {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-option:hover {
+  background-color: #5A5D67;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+/* View Modal Styles */
+#view-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#view-modal .modal-content {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+#view-modal h2 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  font-size: 24px;
+  border-bottom: 2px solid var(--secondary-color);
+  padding-bottom: 10px;
+}
+
+#view-modal .detail-section {
+  margin-bottom: 20px;
+}
+
+#view-modal .detail-label {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+#view-modal .detail-content {
+  color: var(--text-color);
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 10px;
+  background-color: rgba(74, 77, 87, 0.3);
+  border-radius: 8px;
+}
+
+#view-close {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 10px;
+  background-color: var(--accent-color);
+  color: var(--background);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+#view-close:hover {
+  background-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+
+@media (max-width: 480px) {
+  .view-option {
+    min-height: 44px;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  #view-modal .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  #view-modal h2 {
+    font-size: 20px;
+  }
+
+  #view-modal .detail-content {
+    font-size: 14px;
+  }
+}
