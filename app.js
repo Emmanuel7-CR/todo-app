@@ -1226,7 +1226,7 @@ async function initApp() {
     UI.init();
     console.log('✅ UI initialized');
 
-    // Verify critical UI elements
+    // Verify critical UI element
     if (!UI.elements.tasksContainer || !UI.elements.snackbar) {
       const missing = [];
       if (!UI.elements.tasksContainer) missing.push('tasks-container');
