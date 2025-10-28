@@ -1244,6 +1244,19 @@ kbd {
   }
 }
 
+@media (max-width: 480px) {
+  .app-footer{
+    display: none;
+     opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .app-footer.fade-out {
+  opacity: 0;
+}
+  
+}
+
+
 /* ===================================
    Print Styles
    =================================== */

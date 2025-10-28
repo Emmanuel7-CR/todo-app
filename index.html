@@ -177,7 +177,9 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="task-due-date" class="form-label">Due Date</label>
+                        <label for="task-due-date" class="form-label">
+                            Due Date <span class="required">*</span>
+                        </label>
                         <input 
                             type="datetime-local" 
                             id="task-due-date" 
@@ -186,7 +188,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="task-priority" class="form-label">Priority</label>
+                        <label for="task-priority" class="form-label">
+                            Priority <span class="required">*</span>
+                        </label>
                         <select id="task-priority" class="form-select">
                             <option value="low">Low</option>
                             <option value="medium" selected>Medium</option>
@@ -434,6 +438,20 @@
             // Also run after a tiny delay for safety
             setTimeout(hideModals, 0);
         })();
+
+        document.addEventListener('DOMContentLoaded', () => {
+    const footer = document.querySelector('.app-footer');
+    if (footer) {
+      setTimeout(() => {
+        // Add fade-out class to trigger transition
+        footer.classList.add('fade-out');
+        // After transition completes, hide it from layout
+        setTimeout(() => {
+          footer.style.display = 'none';
+        }, 500); // Match this to the CSS transition duration
+      }, 5000); // 5000 = 5 seconds delay before fade starts
+    }
+  });
     </script>
     <script src="app.js"></script>
 </body>
