@@ -387,11 +387,12 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirm-modal" class="modal" role="dialog" aria-labelledby="confirm-modal-title" aria-modal="true" hidden>
+    <div id="confirm-modal" class="modal" role="dialog" aria-labelledby="confirm-modal-title" aria-modal="true" hidden style="display: none;">
         <div class="modal-overlay" aria-hidden="true"></div>
         <div class="modal-content modal-small" role="document">
             <div class="modal-header">
                 <h2 id="confirm-modal-title" class="modal-title">Confirm Action</h2>
+                <button class="modal-close" aria-label="Close confirmation dialog">✕</button>
             </div>
             <div class="confirm-content">
                 <p id="confirm-message" class="confirm-message"></p>
@@ -410,6 +411,28 @@
     </div>
 
     <!-- Scripts -->
+    <script>
+        // CRITICAL: Hide all modals immediately before app loads
+        // This prevents any modal from appearing before JavaScript initializes
+        (function() {
+            const hideModals = () => {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.hidden = true;
+                    modal.style.display = 'none';
+                });
+            };
+            
+            // Run immediately
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', hideModals);
+            } else {
+                hideModals();
+            }
+            
+            // Also run after a tiny delay for safety
+            setTimeout(hideModals, 0);
+        })();
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

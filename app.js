@@ -285,6 +285,9 @@ const UI = {
     this.cacheElements();
     this.attachEventListeners();
     this.updateNotificationBadge();
+    
+    // Ensure all modals are closed on init
+    this.closeAllModals();
   },
 
   cacheElements() {
@@ -419,7 +422,9 @@ const UI = {
     document.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const modal = e.target.closest('.modal');
-        this.closeModal(modal);
+        if (modal) {
+          this.closeModal(modal);
+        }
       });
     });
 
@@ -861,6 +866,7 @@ const UI = {
     if (!modal) return;
     
     modal.hidden = false;
+    modal.style.display = ''; // Remove inline style to let CSS take over
     modal.removeAttribute('aria-hidden');
     
     // Focus trap
@@ -884,10 +890,16 @@ const UI = {
     
     // Now safe to hide
     modal.hidden = true;
+    modal.style.display = 'none'; // Explicitly set display none
     modal.setAttribute('aria-hidden', 'true');
   },
 
   showConfirm(message, onConfirm) {
+    if (!this.elements.confirmModal || !this.elements.confirmMessage) {
+      console.warn('Confirm modal elements not available');
+      return;
+    }
+    
     this.elements.confirmMessage.textContent = message;
     
     const handleConfirm = () => {
@@ -901,12 +913,20 @@ const UI = {
 
     const cleanup = () => {
       this.closeModal(this.elements.confirmModal);
-      this.elements.confirmOk.removeEventListener('click', handleConfirm);
-      this.elements.confirmCancel.removeEventListener('click', handleCancel);
+      if (this.elements.confirmOk) {
+        this.elements.confirmOk.removeEventListener('click', handleConfirm);
+      }
+      if (this.elements.confirmCancel) {
+        this.elements.confirmCancel.removeEventListener('click', handleCancel);
+      }
     };
 
-    this.elements.confirmOk.addEventListener('click', handleConfirm);
-    this.elements.confirmCancel.addEventListener('click', handleCancel);
+    if (this.elements.confirmOk) {
+      this.elements.confirmOk.addEventListener('click', handleConfirm);
+    }
+    if (this.elements.confirmCancel) {
+      this.elements.confirmCancel.addEventListener('click', handleCancel);
+    }
 
     this.showModal(this.elements.confirmModal);
   },
@@ -1226,13 +1246,19 @@ async function initApp() {
     UI.init();
     console.log('✅ UI initialized');
 
-    // Verify critical UI element
+    // Verify critical UI elements
     if (!UI.elements.tasksContainer || !UI.elements.snackbar) {
       const missing = [];
       if (!UI.elements.tasksContainer) missing.push('tasks-container');
       if (!UI.elements.snackbar) missing.push('snackbar');
       throw new Error(`Critical HTML elements missing: ${missing.join(', ')}. Please ensure index.html is complete.`);
     }
+
+    // Explicitly ensure all modals are closed (safety check)
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    });
 
     // Now load tasks (UI is ready to display them)
     await State.loadTasks();
