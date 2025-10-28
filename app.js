@@ -858,19 +858,31 @@ const UI = {
   },
 
   showModal(modal) {
+    if (!modal) return;
+    
     modal.hidden = false;
-    modal.setAttribute('aria-hidden', 'false');
+    modal.removeAttribute('aria-hidden');
     
     // Focus trap
     const focusable = modal.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     if (focusable.length > 0) {
-      focusable[0].focus();
+      // Small delay to ensure modal is rendered
+      setTimeout(() => focusable[0].focus(), 50);
     }
   },
 
   closeModal(modal) {
+    if (!modal) return;
+    
+    // Remove focus from any element inside the modal first
+    const activeElement = document.activeElement;
+    if (modal.contains(activeElement)) {
+      activeElement.blur();
+    }
+    
+    // Now safe to hide
     modal.hidden = true;
     modal.setAttribute('aria-hidden', 'true');
   },
