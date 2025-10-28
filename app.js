@@ -217,7 +217,10 @@ const State = {
       this.filterAndSortTasks();
     } catch (error) {
       console.error('Error loading tasks:', error);
-      UI.showSnackbar('Error loading tasks', null);
+      // Don't show snackbar if UI elements not ready
+      if (UI.elements.snackbar && UI.elements.snackbarMessage) {
+        UI.showSnackbar('Error loading tasks', null);
+      }
     }
   },
 
@@ -285,74 +288,88 @@ const UI = {
   },
 
   cacheElements() {
+    // Helper to safely get element
+    const getEl = (id) => {
+      const el = document.getElementById(id);
+      if (!el) console.warn(`Element not found: ${id}`);
+      return el;
+    };
+    
     this.elements = {
       // Tasks
-      tasksContainer: document.getElementById('tasks-container'),
-      emptyState: document.getElementById('empty-state'),
-      noResultsState: document.getElementById('no-results-state'),
+      tasksContainer: getEl('tasks-container'),
+      emptyState: getEl('empty-state'),
+      noResultsState: getEl('no-results-state'),
+      noResultsState: getEl('no-results-state'),
       
       // Controls
-      addTaskBtn: document.getElementById('add-task-btn'),
-      searchInput: document.getElementById('search-input'),
-      statusFilter: document.getElementById('status-filter'),
-      priorityFilter: document.getElementById('priority-filter'),
-      sortSelect: document.getElementById('sort-select'),
+      addTaskBtn: getEl('add-task-btn'),
+      searchInput: getEl('search-input'),
+      statusFilter: getEl('status-filter'),
+      priorityFilter: getEl('priority-filter'),
+      sortSelect: getEl('sort-select'),
       
       // Task Modal
-      taskModal: document.getElementById('task-modal'),
-      taskForm: document.getElementById('task-form'),
-      modalTitle: document.getElementById('modal-title'),
-      formSubmitText: document.getElementById('form-submit-text'),
-      taskTitle: document.getElementById('task-title'),
-      taskDescription: document.getElementById('task-description'),
-      taskDueDate: document.getElementById('task-due-date'),
-      taskPriority: document.getElementById('task-priority'),
-      taskTags: document.getElementById('task-tags'),
+      taskModal: getEl('task-modal'),
+      taskForm: getEl('task-form'),
+      modalTitle: getEl('modal-title'),
+      formSubmitText: getEl('form-submit-text'),
+      taskTitle: getEl('task-title'),
+      taskDescription: getEl('task-description'),
+      taskDueDate: getEl('task-due-date'),
+      taskPriority: getEl('task-priority'),
+      taskTags: getEl('task-tags'),
       
       // Detail Modal
-      detailModal: document.getElementById('detail-modal'),
-      detailTitle: document.getElementById('detail-title'),
-      detailDescription: document.getElementById('detail-description'),
-      detailDescriptionSection: document.getElementById('detail-description-section'),
-      detailDue: document.getElementById('detail-due'),
-      detailDueSection: document.getElementById('detail-due-section'),
-      detailTags: document.getElementById('detail-tags'),
-      detailTagsSection: document.getElementById('detail-tags-section'),
-      detailCreated: document.getElementById('detail-created'),
-      detailPriority: document.getElementById('detail-priority'),
-      detailStatus: document.getElementById('detail-status'),
-      detailEditBtn: document.getElementById('detail-edit-btn'),
-      detailDeleteBtn: document.getElementById('detail-delete-btn'),
+      detailModal: getEl('detail-modal'),
+      detailTitle: getEl('detail-title'),
+      detailDescription: getEl('detail-description'),
+      detailDescriptionSection: getEl('detail-description-section'),
+      detailDue: getEl('detail-due'),
+      detailDueSection: getEl('detail-due-section'),
+      detailTags: getEl('detail-tags'),
+      detailTagsSection: getEl('detail-tags-section'),
+      detailCreated: getEl('detail-created'),
+      detailPriority: getEl('detail-priority'),
+      detailStatus: getEl('detail-status'),
+      detailEditBtn: getEl('detail-edit-btn'),
+      detailDeleteBtn: getEl('detail-delete-btn'),
       
       // Settings Modal
-      settingsModal: document.getElementById('settings-modal'),
-      settingsBtn: document.getElementById('settings-btn'),
-      themeSelect: document.getElementById('theme-select'),
+      settingsModal: getEl('settings-modal'),
+      settingsBtn: getEl('settings-btn'),
+      themeSelect: getEl('theme-select'),
       colorOptions: document.querySelectorAll('.color-option'),
-      notificationsToggle: document.getElementById('notifications-toggle'),
-      soundToggle: document.getElementById('sound-toggle'),
-      exportBtn: document.getElementById('export-btn'),
-      importBtn: document.getElementById('import-btn'),
-      importFile: document.getElementById('import-file'),
-      clearDataBtn: document.getElementById('clear-data-btn'),
+      notificationsToggle: getEl('notifications-toggle'),
+      soundToggle: getEl('sound-toggle'),
+      exportBtn: getEl('export-btn'),
+      importBtn: getEl('import-btn'),
+      importFile: getEl('import-file'),
+      clearDataBtn: getEl('clear-data-btn'),
       
       // Confirm Modal
-      confirmModal: document.getElementById('confirm-modal'),
-      confirmMessage: document.getElementById('confirm-message'),
-      confirmOk: document.getElementById('confirm-ok'),
-      confirmCancel: document.getElementById('confirm-cancel'),
+      confirmModal: getEl('confirm-modal'),
+      confirmMessage: getEl('confirm-message'),
+      confirmOk: getEl('confirm-ok'),
+      confirmCancel: getEl('confirm-cancel'),
       
       // Other
-      themeToggle: document.getElementById('theme-toggle'),
-      notificationsBtn: document.getElementById('notifications-btn'),
-      notificationBadge: document.getElementById('notification-badge'),
-      snackbar: document.getElementById('snackbar'),
-      snackbarMessage: document.getElementById('snackbar-message'),
-      snackbarAction: document.getElementById('snackbar-action')
+      themeToggle: getEl('theme-toggle'),
+      notificationsBtn: getEl('notifications-btn'),
+      notificationBadge: getEl('notification-badge'),
+      snackbar: getEl('snackbar'),
+      snackbarMessage: getEl('snackbar-message'),
+      snackbarAction: getEl('snackbar-action')
     };
   },
 
   attachEventListeners() {
+    // Add null checks for all elements
+    if (!this.elements.addTaskBtn || !this.elements.searchInput) {
+      console.error('Critical UI elements missing');
+      return;
+    }
+
     // Add task
     this.elements.addTaskBtn.addEventListener('click', () => this.openTaskModal());
 
@@ -558,12 +575,25 @@ const UI = {
 
   renderTasks(tasks) {
     const container = this.elements.tasksContainer;
+    
+    // Early return if critical elements missing
+    if (!container) {
+      console.error('Critical error: tasks-container element not found in DOM');
+      return;
+    }
+
     const hasResults = tasks.length > 0;
     const hasAnyTasks = State.tasks.length > 0;
 
-    // Show/hide states
-    this.elements.emptyState.hidden = hasAnyTasks;
-    this.elements.noResultsState.hidden = hasResults || !hasAnyTasks;
+    // Show/hide states with null checks
+    if (this.elements.emptyState) {
+      this.elements.emptyState.hidden = hasAnyTasks;
+    }
+    
+    if (this.elements.noResultsState) {
+      this.elements.noResultsState.hidden = hasResults || !hasAnyTasks;
+    }
+    
     container.style.display = hasResults ? 'flex' : 'none';
 
     if (!hasResults) return;
@@ -870,9 +900,15 @@ const UI = {
   },
 
   showSnackbar(message, actionText = null, actionHandler = null) {
+    // Verify elements exist
+    if (!this.elements.snackbar || !this.elements.snackbarMessage) {
+      console.warn('Snackbar elements not available. Message:', message);
+      return;
+    }
+
     this.elements.snackbarMessage.textContent = message;
 
-    if (actionText && actionHandler) {
+    if (actionText && actionHandler && this.elements.snackbarAction) {
       this.elements.snackbarAction.textContent = actionText;
       this.elements.snackbarAction.hidden = false;
       
@@ -885,11 +921,15 @@ const UI = {
       this.elements.snackbarAction.addEventListener('click', handler);
       
       setTimeout(() => {
-        this.elements.snackbarAction.removeEventListener('click', handler);
+        if (this.elements.snackbarAction) {
+          this.elements.snackbarAction.removeEventListener('click', handler);
+        }
         this.hideSnackbar();
       }, APP_CONFIG.UNDO_TIMEOUT);
     } else {
-      this.elements.snackbarAction.hidden = true;
+      if (this.elements.snackbarAction) {
+        this.elements.snackbarAction.hidden = true;
+      }
       setTimeout(() => this.hideSnackbar(), 3000);
     }
 
@@ -897,10 +937,16 @@ const UI = {
   },
 
   hideSnackbar() {
-    this.elements.snackbar.hidden = true;
+    if (this.elements.snackbar) {
+      this.elements.snackbar.hidden = true;
+    }
   },
 
   updateNotificationBadge() {
+    if (!this.elements.notificationsBtn || !this.elements.notificationBadge) {
+      return;
+    }
+
     if (State.notificationCount > 0) {
       this.elements.notificationsBtn.hidden = false;
       this.elements.notificationBadge.hidden = false;
@@ -1154,34 +1200,64 @@ const PWA = {
 
 async function initApp() {
   try {
-    // Initialize database
+    console.log('🚀 Starting app initialization...');
+    
+    // Initialize database first
     await DB.init();
-    console.log('Database initialized');
+    console.log('✅ Database initialized');
 
-    // Initialize state
+    // Initialize state (loads settings)
     State.init();
-    console.log('State initialized');
+    console.log('✅ State initialized');
 
-    // Load tasks
-    await State.loadTasks();
-    console.log('Tasks loaded:', State.tasks.length);
-
-    // Initialize UI
+    // Initialize UI BEFORE loading tasks (UI needs to exist first!)
     UI.init();
-    console.log('UI initialized');
+    console.log('✅ UI initialized');
+
+    // Verify critical UI elements
+    if (!UI.elements.tasksContainer || !UI.elements.snackbar) {
+      const missing = [];
+      if (!UI.elements.tasksContainer) missing.push('tasks-container');
+      if (!UI.elements.snackbar) missing.push('snackbar');
+      throw new Error(`Critical HTML elements missing: ${missing.join(', ')}. Please ensure index.html is complete.`);
+    }
+
+    // Now load tasks (UI is ready to display them)
+    await State.loadTasks();
+    console.log('✅ Tasks loaded:', State.tasks.length);
 
     // Initialize notifications
     await Notifications.init();
-    console.log('Notifications initialized');
+    console.log('✅ Notifications initialized');
 
     // Initialize PWA features
     PWA.init();
-    console.log('PWA features initialized');
+    console.log('✅ PWA features initialized');
 
-    console.log('✅ App initialized successfully');
+    console.log('🎉 App initialized successfully!');
   } catch (error) {
     console.error('❌ Error initializing app:', error);
-    alert('Failed to initialize the application. Please refresh the page.');
+    
+    // Show user-friendly error
+    const errorMessage = 'Failed to initialize the application.';
+    const errorDetail = error.message || 'Unknown error';
+    
+    // Log detailed diagnostic info
+    console.error('=== DIAGNOSTIC INFORMATION ===');
+    console.error('Error:', errorDetail);
+    console.error('Stack:', error.stack);
+    console.error('HTML Elements found:', {
+      tasksContainer: !!document.getElementById('tasks-container'),
+      emptyState: !!document.getElementById('empty-state'),
+      snackbar: !!document.getElementById('snackbar'),
+      addTaskBtn: !!document.getElementById('add-task-btn'),
+      searchInput: !!document.getElementById('search-input')
+    });
+    console.error('Document ready state:', document.readyState);
+    console.error('==============================');
+    
+    // Show alert
+    alert(`${errorMessage}\n\nError: ${errorDetail}\n\nPlease check:\n✓ All files are uploaded correctly\n✓ index.html is complete\n✓ Browser console for details\n✓ Try clearing cache (Ctrl+Shift+R)`);
   }
 }
 

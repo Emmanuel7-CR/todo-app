@@ -2,6 +2,27 @@
 
 A fully-featured, offline-capable TODO application built with vanilla JavaScript, HTML5, and CSS3. No frameworks, no build tools—just modern web standards.
 
+## 🚀 Quick Start (Fix Icons Issue)
+
+If you're seeing 404 errors for icons, run one of these:
+
+**Option 1 - Download Script (Mac/Linux):**
+```bash
+chmod +x download-icons.sh
+./download-icons.sh
+```
+
+**Option 2 - Manual Download:**
+Open `generate-icons.html` in your browser, right-click each icon and save to `/icons/` folder.
+
+**Option 3 - Command Line:**
+```bash
+mkdir -p icons
+for size in 72 96 128 144 152 192 384 512; do
+  curl "https://via.placeholder.com/${size}/3B82F6/FFFFFF?text=TODO" -o "icons/icon-${size}.png"
+done
+```
+
 ## Features
 
 ✅ **Core Functionality**
