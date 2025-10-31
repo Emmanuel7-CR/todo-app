@@ -281,8 +281,44 @@ const State = {
 const UI = {
   elements: {},
 
+  // Snackbar config + runtime timeout id
+  _SNACKBAR_DEFAULT_TIMEOUT: 5000,
+  _snackbarTimeoutId: null,
+
+  // Initialize snackbar DOM state (call this after cacheElements)
+  initSnackbar() {
+    // Ensure element refs exist (cacheElements should have been called)
+    this.elements = this.elements || {};
+    this.elements.snackbar = this.elements.snackbar || document.getElementById('snackbar');
+    this.elements.snackbarMessage = this.elements.snackbarMessage || document.getElementById('snackbar-message');
+    this.elements.snackbarAction = this.elements.snackbarAction || document.getElementById('snackbar-action');
+
+    if (this.elements.snackbar) {
+      this.elements.snackbar.hidden = true;
+      this.elements.snackbar.setAttribute('role', 'status');
+      this.elements.snackbar.setAttribute('aria-live', 'polite');
+      this.elements.snackbar.setAttribute('aria-atomic', 'true');
+      this.elements.snackbar.setAttribute('aria-hidden', 'true');
+    }
+    if (this.elements.snackbarMessage) {
+      this.elements.snackbarMessage.textContent = '';
+    }
+    if (this.elements.snackbarAction) {
+      this.elements.snackbarAction.hidden = true;
+      this.elements.snackbarAction.textContent = '';
+    }
+
+    // Clear any leftover timeout
+    if (this._snackbarTimeoutId) {
+      clearTimeout(this._snackbarTimeoutId);
+      this._snackbarTimeoutId = null;
+    }
+  },
+
+
   init() {
     this.cacheElements();
+    this.initSnackbar(); 
     this.attachEventListeners();
     this.updateNotificationBadge();
     
@@ -302,7 +338,6 @@ const UI = {
       // Tasks
       tasksContainer: getEl('tasks-container'),
       emptyState: getEl('empty-state'),
-      noResultsState: getEl('no-results-state'),
       noResultsState: getEl('no-results-state'),
       
       // Controls
@@ -931,56 +966,100 @@ const UI = {
     this.showModal(this.elements.confirmModal);
   },
 
-  showSnackbar(message, actionText = null, actionHandler = null) {
-  // 1. Ensure snackbar elements exist
-  if (!this.elements.snackbar || !this.elements.snackbarMessage) {
-    console.warn('Snackbar elements missing. Message:', message);
-    return;
-  }
-
-  // 2. 🔒 CRITICAL: Only show if message is a non-empty, trimmed string
-  if (!message || typeof message !== 'string' || message.trim() === '') {
-    this.hideSnackbar();
-    return;
-  }
-
-  // 3. Set the (trimmed) message
-  this.elements.snackbarMessage.textContent = message.trim();
-
-  // 4. Handle action button (Undo, etc.)
-  if (actionText && actionHandler && this.elements.snackbarAction) {
-    this.elements.snackbarAction.textContent = actionText;
-    this.elements.snackbarAction.hidden = false;
-
-    const handler = () => {
-      actionHandler();
-      this.elements.snackbarAction.removeEventListener('click', handler);
-      this.hideSnackbar();
-    };
-
-    this.elements.snackbarAction.addEventListener('click', handler);
-
-    // Auto-hide after 5 seconds (UNDO_TIMEOUT = 5000)
-    setTimeout(() => {
-      this.elements.snackbarAction.removeEventListener('click', handler);
-      this.hideSnackbar();
-    }, APP_CONFIG.UNDO_TIMEOUT);
-  } else {
-    // No action: hide action button and auto-hide after 5 seconds
-    if (this.elements.snackbarAction) {
-      this.elements.snackbarAction.hidden = true;
+   showSnackbar(message, actionText = null, actionHandler = null) {
+    // Ensure snackbar elements exist
+    if (!this.elements || !this.elements.snackbar || !this.elements.snackbarMessage) {
+      console.warn('Snackbar elements missing. Message:', message);
+      return;
     }
-    setTimeout(() => this.hideSnackbar(), 5000); // ⏱️ 5 seconds
-  }
 
-  // 5. Finally, show the snackbar
-  this.elements.snackbar.hidden = false;
-},
+    // Normalize message and treat whitespace as empty
+    const text = (message || '').toString().trim();
+    if (!text) {
+      // nothing meaningful to show
+      this.hideSnackbar();
+      return;
+    }
+
+    // Clear any existing timeout to avoid overlap
+    if (this._snackbarTimeoutId) {
+      clearTimeout(this._snackbarTimeoutId);
+      this._snackbarTimeoutId = null;
+    }
+
+    // Set message safely
+    this.elements.snackbarMessage.textContent = text;
+
+    // Setup action button defensively
+    if (this.elements.snackbarAction) {
+      // Remove old listeners by replacing the node (defensive)
+      const oldBtn = this.elements.snackbarAction;
+      const newBtn = oldBtn.cloneNode(true);
+      if (oldBtn && oldBtn.parentNode) {
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+      }
+      this.elements.snackbarAction = newBtn;
+
+
+      // Default hide
+      this.elements.snackbarAction.hidden = true;
+      this.elements.snackbarAction.textContent = '';
+
+      if (actionText && typeof actionHandler === 'function') {
+        this.elements.snackbarAction.textContent = actionText;
+        this.elements.snackbarAction.hidden = false;
+        this.elements.snackbarAction.addEventListener('click', (ev) => {
+          try { actionHandler(ev); } catch (e) { console.error(e); }
+          this.hideSnackbar();
+        });
+
+        // Use configured UNDO_TIMEOUT if available, otherwise default
+        const delay = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.UNDO_TIMEOUT) ? APP_CONFIG.UNDO_TIMEOUT : this._SNACKBAR_DEFAULT_TIMEOUT;
+        this._snackbarTimeoutId = setTimeout(() => this.hideSnackbar(), delay);
+      } else {
+        // No action -> auto-hide after default
+        this.elements.snackbarAction.hidden = true;
+        this._snackbarTimeoutId = setTimeout(() => this.hideSnackbar(), this._SNACKBAR_DEFAULT_TIMEOUT);
+      }
+    } else {
+      // No action element present, still auto-hide
+      this._snackbarTimeoutId = setTimeout(() => this.hideSnackbar(), this._SNACKBAR_DEFAULT_TIMEOUT);
+    }
+
+    // Show snackbar (and accessibility)
+    this.elements.snackbar.hidden = false;
+    this.elements.snackbar.setAttribute('aria-hidden', 'false');
+  },
 
   hideSnackbar() {
-    if (this.elements.snackbar) {
-      this.elements.snackbar.hidden = true;
+    if (!this.elements || !this.elements.snackbar || !this.elements.snackbarMessage) return;
+
+    // Clear running timeout
+    if (this._snackbarTimeoutId) {
+      clearTimeout(this._snackbarTimeoutId);
+      this._snackbarTimeoutId = null;
     }
+
+    // Reset action button (remove listeners by replacing node)
+    if (this.elements.snackbarAction) {
+      const oldBtn = this.elements.snackbarAction;
+      const newBtn = oldBtn.cloneNode(true);
+      newBtn.hidden = true;
+      newBtn.textContent = '';
+      if (oldBtn && oldBtn.parentNode) {
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+      }
+      this.elements.snackbarAction = newBtn;
+
+
+    }
+
+    // Clear message
+    this.elements.snackbarMessage.textContent = '';
+
+    // Hide container & update accessibility
+    this.elements.snackbar.hidden = true;
+    this.elements.snackbar.setAttribute('aria-hidden', 'true');
   },
 
   updateNotificationBadge() {

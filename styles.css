@@ -1066,6 +1066,10 @@ body {
 .snackbar-action:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+/* hide empty snackbar by default */
+#snackbar:empty { display: none !important; }
+#snackbar { transition: opacity .18s ease, transform .18s ease; }
+
 
 /* ===================================
    Notification Badge
