@@ -932,22 +932,22 @@ const UI = {
   },
 
   showSnackbar(message, actionText = null, actionHandler = null) {
-  // 1. Ensure elements exist
+  // 1. Ensure snackbar elements exist
   if (!this.elements.snackbar || !this.elements.snackbarMessage) {
     console.warn('Snackbar elements missing. Message:', message);
     return;
   }
 
-  // 2. ONLY proceed if message is a non-empty string
+  // 2. 🔒 CRITICAL: Only show if message is a non-empty, trimmed string
   if (!message || typeof message !== 'string' || message.trim() === '') {
-    this.hideSnackbar(); // ensure it's hidden
+    this.hideSnackbar();
     return;
   }
 
-  // 3. Set message
+  // 3. Set the (trimmed) message
   this.elements.snackbarMessage.textContent = message.trim();
 
-  // 4. Handle action button
+  // 4. Handle action button (Undo, etc.)
   if (actionText && actionHandler && this.elements.snackbarAction) {
     this.elements.snackbarAction.textContent = actionText;
     this.elements.snackbarAction.hidden = false;
@@ -960,21 +960,20 @@ const UI = {
 
     this.elements.snackbarAction.addEventListener('click', handler);
 
-    // Auto-hide after UNDO_TIMEOUT (5000ms)
+    // Auto-hide after 5 seconds (UNDO_TIMEOUT = 5000)
     setTimeout(() => {
       this.elements.snackbarAction.removeEventListener('click', handler);
       this.hideSnackbar();
     }, APP_CONFIG.UNDO_TIMEOUT);
   } else {
-    // Hide action button if not needed
+    // No action: hide action button and auto-hide after 5 seconds
     if (this.elements.snackbarAction) {
       this.elements.snackbarAction.hidden = true;
     }
-    // Auto-hide after 5 seconds (or keep consistent with undo timeout)
-    setTimeout(() => this.hideSnackbar(), 5000);
+    setTimeout(() => this.hideSnackbar(), 5000); // ⏱️ 5 seconds
   }
 
-  // 5. Show snackbar
+  // 5. Finally, show the snackbar
   this.elements.snackbar.hidden = false;
 },
 
