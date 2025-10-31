@@ -932,41 +932,44 @@ const UI = {
   },
 
   showSnackbar(message, actionText = null, actionHandler = null) {
-    // Verify elements exist
-    if (!this.elements.snackbar || !this.elements.snackbarMessage) {
-      console.warn('Snackbar elements not available. Message:', message);
-      return;
-    }
+  // Verify elements exist
+  if (!this.elements.snackbar || !this.elements.snackbarMessage) {
+    console.warn('Snackbar elements not available. Message:', message);
+    return;
+  }
 
-    this.elements.snackbarMessage.textContent = message;
+  // 🔒 Only show if message is non-empty and meaningful
+  if (!message || typeof message !== 'string' || message.trim() === '') {
+    this.hideSnackbar();
+    return;
+  }
 
-    if (actionText && actionHandler && this.elements.snackbarAction) {
-      this.elements.snackbarAction.textContent = actionText;
-      this.elements.snackbarAction.hidden = false;
-      
-      const handler = () => {
-        actionHandler();
-        this.elements.snackbarAction.removeEventListener('click', handler);
-        this.hideSnackbar();
-      };
-      
-      this.elements.snackbarAction.addEventListener('click', handler);
-      
-      setTimeout(() => {
-        if (this.elements.snackbarAction) {
-          this.elements.snackbarAction.removeEventListener('click', handler);
-        }
-        this.hideSnackbar();
-      }, APP_CONFIG.UNDO_TIMEOUT);
-    } else {
+  this.elements.snackbarMessage.textContent = message.trim();
+
+  if (actionText && actionHandler && this.elements.snackbarAction) {
+    this.elements.snackbarAction.textContent = actionText;
+    this.elements.snackbarAction.hidden = false;
+    const handler = () => {
+      actionHandler();
+      this.elements.snackbarAction.removeEventListener('click', handler);
+      this.hideSnackbar();
+    };
+    this.elements.snackbarAction.addEventListener('click', handler);
+    setTimeout(() => {
       if (this.elements.snackbarAction) {
-        this.elements.snackbarAction.hidden = true;
+        this.elements.snackbarAction.removeEventListener('click', handler);
       }
-      setTimeout(() => this.hideSnackbar(), 3000);
+      this.hideSnackbar();
+    }, APP_CONFIG.UNDO_TIMEOUT);
+  } else {
+    if (this.elements.snackbarAction) {
+      this.elements.snackbarAction.hidden = true;
     }
+    setTimeout(() => this.hideSnackbar(), 3000);
+  }
 
-    this.elements.snackbar.hidden = false;
-  },
+  this.elements.snackbar.hidden = false;
+},
 
   hideSnackbar() {
     if (this.elements.snackbar) {
