@@ -1383,3 +1383,29 @@ kbd {
   }
 }
 
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical; /* Allow manual resizing vertically */
+  min-height: 64px; /* Minimum height */
+  max-height: 200px; /* Maximum height */
+  transition: border-color 0.2s ease;
+  overflow-y: auto;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.dark-mode .form-textarea {
+  background-color: var(--card-bg);
+  border-color: var(--border-color-dark);
+  color: var(--text-color);
+}
